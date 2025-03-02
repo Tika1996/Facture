@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FacturePro - Application de Facturation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-invoice, #printable-invoice * {
+                visibility: visible;
+            }
+            #printable-invoice {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-file-invoice"></i>
+                <h1>FacturePro</h1>
+            </div>
+            <nav class="menu">
+                <ul>
+                    <li class="active"><a href="#dashboard"><i class="fas fa-home"></i> Tableau de bord</a></li>
+                    <li><a href="#invoices"><i class="fas fa-file-invoice"></i> Factures</a></li>
+                    <li><a href="#clients"><i class="fas fa-users"></i> Clients</a></li>
+                    <li><a href="#products"><i class="fas fa-box"></i> Produits</a></li>
+                    <li><a href="#settings"><i class="fas fa-cog"></i> Paramètres</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Rechercher...">
+                </div>
+                <div class="user-menu">
+                    <button class="new-invoice-btn"><i class="fas fa-plus"></i> Nouvelle Facture</button>
+                    <div class="profile">
+                        <img src="https://via.placeholder.com/40" alt="Profile" class="profile-img">
+                        <span>John Doe</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-euro-sign"></i></div>
+                        <div class="stat-info">
+                            <h3>Chiffre d'affaires</h3>
+                            <p class="amount">0 €</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
+                        <div class="stat-info">
+                            <h3>Factures en attente</h3>
+                            <p class="amount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="stat-info">
+                            <h3>Clients actifs</h3>
+                            <p class="amount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-invoices">
+                    <h2>Factures récentes</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>N° Facture</th>
+                                    <th>Client</th>
+                                    <th>Date</th>
+                                    <th>Montant</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoices-list">
+                                <!-- Les factures seront ajoutées dynamiquement ici -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal pour nouvelle facture -->
+    <div class="modal" id="invoice-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nouvelle Facture</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="invoice-form">
+                    <div class="form-group">
+                        <label>Client</label>
+                        <select id="client-select" required>
+                            <option value="">Sélectionner un client</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Articles</label>
+                        <div id="items-list">
+                            <div class="item-row">
+                                <select class="product-select" required>
+                                    <option value="">Sélectionner un produit</option>
+                                </select>
+                                <input type="number" class="quantity" min="1" value="1" required>
+                                <button type="button" class="remove-item">&times;</button>
+                            </div>
+                        </div>
+                        <button type="button" id="add-item" class="add-item-btn">
+                            <i class="fas fa-plus"></i> Ajouter un article
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label>Total</label>
+                        <div id="invoice-total">0.00 DZD</div>
+                    </div>
+                    <button type="submit" class="save-btn">Créer la facture</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html> 
