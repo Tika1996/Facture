@@ -97,6 +97,34 @@ class Translator {
                 'fr': 'Modifier',
                 'ar': 'تعديل'
             },
+            'edit_invoice': {
+                'fr': 'Modifier la facture',
+                'ar': 'تعديل الفاتورة'
+            },
+            'update': {
+                'fr': 'Mettre à jour',
+                'ar': 'تحديث'
+            },
+            'invoice_updated': {
+                'fr': 'Facture mise à jour avec succès !',
+                'ar': 'تم تحديث الفاتورة بنجاح!'
+            },
+            'invoice_created': {
+                'fr': 'Facture créée avec succès !',
+                'ar': 'تم إنشاء الفاتورة بنجاح!'
+            },
+            'invoice_error': {
+                'fr': 'Une erreur est survenue lors de la gestion de la facture.',
+                'ar': 'حدث خطأ أثناء إدارة الفاتورة.'
+            },
+            'invoice_validation_error': {
+                'fr': 'Veuillez sélectionner un client et ajouter au moins un article.',
+                'ar': 'يرجى تحديد عميل وإضافة عنصر واحد على الأقل.'
+            },
+            'cannot_remove_last_item': {
+                'fr': 'Impossible de supprimer le dernier article.',
+                'ar': 'لا يمكن إزالة العنصر الأخير.'
+            },
             'actions': {
                 'fr': 'Actions',
                 'ar': 'إجراءات'
@@ -201,10 +229,6 @@ class Translator {
                 'fr': 'Prix unitaire',
                 'ar': 'سعر الوحدة'
             },
-            'invoice_created': {
-                'fr': 'Facture créée avec succès !',
-                'ar': 'تم إنشاء الفاتورة بنجاح!'
-            },
             
             // Clients
             'name': {
@@ -227,10 +251,6 @@ class Translator {
                 'fr': 'Êtes-vous sûr de vouloir supprimer ce client ?',
                 'ar': 'هل أنت متأكد من أنك تريد حذف هذا العميل؟'
             },
-            'edit_client': {
-                'fr': 'Modifier Client',
-                'ar': 'تعديل العميل'
-            },
             
             // Produits
             'price': {
@@ -241,9 +261,33 @@ class Translator {
                 'fr': 'Êtes-vous sûr de vouloir supprimer ce produit ?',
                 'ar': 'هل أنت متأكد من أنك تريد حذف هذا المنتج؟'
             },
-            'edit_product': {
-                'fr': 'Modifier Produit',
-                'ar': 'تعديل المنتج'
+            'stock': {
+                'fr': 'Stock',
+                'ar': 'المخزون'
+            },
+            'manage_stock': {
+                'fr': 'Gérer le stock',
+                'ar': 'إدارة المخزون'
+            },
+            'product_name': {
+                'fr': 'Nom du produit',
+                'ar': 'اسم المنتج'
+            },
+            'current_stock': {
+                'fr': 'Stock actuel',
+                'ar': 'المخزون الحالي'
+            },
+            'quantity': {
+                'fr': 'Quantité',
+                'ar': 'الكمية'
+            },
+            'stock_quantity_help': {
+                'fr': 'Entrez une valeur positive pour augmenter le stock ou négative pour le diminuer.',
+                'ar': 'أدخل قيمة إيجابية لزيادة المخزون أو سالبة لتقليله.'
+            },
+            'update_stock': {
+                'fr': 'Mettre à jour le stock',
+                'ar': 'تحديث المخزون'
             },
             
             // Paramètres
@@ -388,11 +432,12 @@ class Client {
 
 // Gestion des produits
 class Product {
-    constructor(name, price, description = "") {
+    constructor(name, price, description = "", stock = 0) {
         this.id = Date.now().toString();
         this.name = name;
         this.price = price;
         this.description = description;
+        this.stock = stock;
     }
 
     static add(product) {
@@ -414,6 +459,18 @@ class Product {
             Product.add(this);
         }
         Storage.setProducts(products);
+    }
+    
+    // Méthodes pour gérer le stock
+    static updateStock(productId, quantity) {
+        const products = this.getAll();
+        const index = products.findIndex(p => p.id === productId);
+        if (index !== -1) {
+            products[index].stock = Math.max(0, products[index].stock + quantity);
+            Storage.setProducts(products);
+            return true;
+        }
+        return false;
     }
 }
 
@@ -917,6 +974,28 @@ class Invoice {
             </html>
         `;
     }
+    
+    // Nouvelle méthode save pour mettre à jour une facture existante
+    save() {
+        const invoices = Invoice.getAll();
+        const index = invoices.findIndex(inv => inv.id === this.id);
+        
+        if (index !== -1) {
+            // Mettre à jour les calculs avant la sauvegarde
+            this.totalHT = this.calculateTotalHT();
+            this.tva = this.calculateTVA();
+            this.totalTTC = this.calculateTotalTTC();
+            
+            // Mettre à jour la facture existante
+            invoices[index] = this;
+        } else {
+            // Ajouter la nouvelle facture
+            Invoice.add(this);
+            return;
+        }
+        
+        Storage.setInvoices(invoices);
+    }
 }
 
 // Gestion de l'interface utilisateur
@@ -1121,6 +1200,9 @@ class UI {
 
         // Initialiser le total
         this.updateTotal();
+        this.populateClientSelect();
+        console.log('initInvoiceForm called, resetting form');
+        form.reset(); // Réinitialiser tous les champs du formulaire
     }
 
     static populateClientSelect() {
@@ -1188,6 +1270,9 @@ class UI {
                     </span>
                 </td>
                 <td>
+                    <button class="action-btn edit-btn" data-id="${invoice.id}" title="${Translator.t('edit')}">
+                        <i class="fas fa-edit"></i>
+                    </button>
                     <button class="action-btn view-btn" data-id="${invoice.id}" title="Voir la facture">
                         <i class="fas fa-file-alt"></i>
                     </button>
@@ -1302,6 +1387,14 @@ class UI {
                 }
             });
         });
+
+        // Éditer
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const invoiceId = btn.dataset.id;
+                this.openInvoiceForEdit(invoiceId);
+            });
+        });
     }
 
     static initStatusClickHandler() {
@@ -1366,9 +1459,13 @@ class UI {
                 <td>${product.name}</td>
                 <td>${Invoice.formatAmount(product.price)}</td>
                 <td>${product.description}</td>
+                <td>${product.stock || 0}</td>
                 <td>
                     <button class="action-btn edit-btn" data-id="${product.id}" title="Modifier le produit">
                         <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="action-btn stock-btn" data-id="${product.id}" title="Gérer le stock">
+                        <i class="fas fa-boxes"></i>
                     </button>
                     <button class="action-btn delete-btn" data-id="${product.id}" title="Supprimer le produit">
                         <i class="fas fa-trash-alt"></i>
@@ -1497,6 +1594,8 @@ class UI {
         const newProductBtn = document.querySelector('.new-product-btn');
         const productModal = document.getElementById('product-modal');
         const productForm = document.getElementById('product-form');
+        const stockModal = document.getElementById('stock-modal');
+        const stockForm = document.getElementById('stock-form');
 
         if (newProductBtn && productModal) {
             newProductBtn.addEventListener('click', () => {
@@ -1514,8 +1613,15 @@ class UI {
                 productModal.classList.remove('active');
             });
         }
+        
+        // Fermeture du modal de stock
+        if (stockModal) {
+            stockModal.querySelector('.close-modal').addEventListener('click', () => {
+                stockModal.classList.remove('active');
+            });
+        }
 
-        // Gestion des boutons d'action (modifier et supprimer)
+        // Gestion des boutons d'action (modifier, gérer stock et supprimer)
         document.querySelectorAll('#products-list .action-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const productId = btn.dataset.id;
@@ -1531,6 +1637,7 @@ class UI {
                         document.getElementById('product-name').value = product.name;
                         document.getElementById('product-price').value = product.price;
                         document.getElementById('product-description').value = product.description;
+                        document.getElementById('product-stock').value = product.stock || 0;
                         
                         // Ajouter l'ID du produit en cours d'édition
                         productForm.setAttribute('data-edit-id', productId);
@@ -1541,8 +1648,19 @@ class UI {
                         
                         modal.classList.add('active');
                     }
+                } else if (btn.classList.contains('stock-btn')) {
+                    // Ouvrir le modal de gestion de stock
+                    const modal = document.getElementById('stock-modal');
+                    if (modal) {
+                        document.getElementById('stock-product-id').value = product.id;
+                        document.getElementById('stock-product-name').value = product.name;
+                        document.getElementById('stock-product-current').value = product.stock || 0;
+                        document.getElementById('stock-product-quantity').value = 0;
+                        
+                        modal.classList.add('active');
+                    }
                 } else if (btn.classList.contains('delete-btn')) {
-                    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+                    if (confirm(Translator.t('delete_product_confirm'))) {
                         const index = products.findIndex(p => p.id === productId);
                         if (index !== -1) {
                             products.splice(index, 1);
@@ -1562,11 +1680,12 @@ class UI {
             
             newProductForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const editId = productForm.getAttribute('data-edit-id');
+                const editId = newProductForm.getAttribute('data-edit-id');
                 const productData = {
                     name: document.getElementById('product-name').value,
                     price: parseFloat(document.getElementById('product-price').value) || 0,
-                    description: document.getElementById('product-description').value
+                    description: document.getElementById('product-description').value,
+                    stock: parseInt(document.getElementById('product-stock').value) || 0
                 };
 
                 const products = Product.getAll();
@@ -1586,7 +1705,8 @@ class UI {
                     const product = new Product(
                         productData.name,
                         productData.price,
-                        productData.description
+                        productData.description,
+                        productData.stock
                     );
                     Product.add(product);
                 }
@@ -1594,7 +1714,26 @@ class UI {
                 this.updateProductsList();
                 document.getElementById('product-modal').classList.remove('active');
                 newProductForm.reset();
-                productForm.removeAttribute('data-edit-id');
+                newProductForm.removeAttribute('data-edit-id');
+            });
+        }
+        
+        // Soumission du formulaire de gestion de stock
+        if (stockForm) {
+            // Supprimer les anciens event listeners
+            const newStockForm = stockForm.cloneNode(true);
+            stockForm.parentNode.replaceChild(newStockForm, stockForm);
+            
+            newStockForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const productId = document.getElementById('stock-product-id').value;
+                const quantity = parseInt(document.getElementById('stock-product-quantity').value) || 0;
+                
+                if (productId && quantity !== 0) {
+                    Product.updateStock(productId, quantity);
+                    this.updateProductsList();
+                    document.getElementById('stock-modal').classList.remove('active');
+                }
             });
         }
     }
@@ -1679,6 +1818,7 @@ class UI {
                 element.innerHTML = html;
                 document.body.appendChild(element);
                 
+                // Utiliser html2pdf pour la conversion
                 const opt = {
                     margin: [10, 10, 10, 10], // Marges réduites [haut, droite, bas, gauche] en mm
                     filename: `facture-${invoice.id}.pdf`,
@@ -1695,6 +1835,7 @@ class UI {
                     }
                 };
                 
+                // Charger dynamiquement html2pdf si nécessaire
                 if (typeof html2pdf === 'undefined') {
                     const script = document.createElement('script');
                     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
@@ -1712,16 +1853,17 @@ class UI {
             } else if (actionBtn.classList.contains('mark-paid-btn')) {
                 const invoices = Invoice.getAll();
                 const index = invoices.findIndex(inv => inv.id === invoiceId);
+                
                 if (index !== -1) {
                     invoices[index].status = 'paid';
                     Storage.setInvoices(invoices);
-                    UI.updateInvoicesList();
+                    this.updateInvoicesList();
                     Invoice.updateDashboardStats();
                 }
             } else if (actionBtn.classList.contains('delete-btn')) {
                 if (confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
                     if (Invoice.delete(invoiceId)) {
-                        UI.updateInvoicesList();
+                        this.updateInvoicesList();
                         Invoice.updateDashboardStats();
                     }
                 }
@@ -1769,6 +1911,7 @@ class UI {
                     filteredInvoices.forEach(invoice => {
                         const client = Client.getAll().find(c => c.id === invoice.clientId);
                         const row = document.createElement('tr');
+                        
                         row.innerHTML = `
                             <td>${invoice.id}</td>
                             <td>${client ? client.name : 'Client inconnu'}</td>
@@ -1780,6 +1923,9 @@ class UI {
                                 </span>
                             </td>
                             <td>
+                                <button class="action-btn edit-btn" data-id="${invoice.id}" title="${Translator.t('edit')}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <button class="action-btn view-btn" data-id="${invoice.id}" title="Voir la facture">
                                     <i class="fas fa-file-alt"></i>
                                 </button>
@@ -1791,6 +1937,7 @@ class UI {
                                 </button>
                             </td>
                         `;
+
                         tbody.appendChild(row);
                     });
                     this.initInvoiceActions();
@@ -1851,9 +1998,13 @@ class UI {
                             <td>${product.name}</td>
                             <td>${Invoice.formatAmount(product.price)}</td>
                             <td>${product.description}</td>
+                            <td>${product.stock || 0}</td>
                             <td>
                                 <button class="action-btn edit-btn" data-id="${product.id}" title="Modifier le produit">
                                     <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="action-btn stock-btn" data-id="${product.id}" title="Gérer le stock">
+                                    <i class="fas fa-boxes"></i>
                                 </button>
                                 <button class="action-btn delete-btn" data-id="${product.id}" title="Supprimer le produit">
                                     <i class="fas fa-trash-alt"></i>
@@ -1868,7 +2019,97 @@ class UI {
         }
     }
 
+    static openInvoiceForEdit(invoiceId) {
+        // Récupérer la facture à modifier
+        const invoice = Invoice.getById(invoiceId);
+        if (!invoice) return;
+        
+        // Ouvrir le modal
+        const modal = document.getElementById('invoice-modal');
+        if (!modal) return;
+        
+        // Mettre à jour le titre du modal
+        const modalTitle = modal.querySelector('.modal-header h2');
+        if (modalTitle) {
+            modalTitle.textContent = Translator.t('edit_invoice');
+        }
+
+        // Récupérer le formulaire
+        const form = document.getElementById('invoice-form');
+        if (!form) return;
+        
+        // Stocker l'ID de la facture en cours de modification
+        form.setAttribute('data-edit-id', invoiceId);
+        
+        // Sélectionner le client
+        const clientSelect = form.querySelector('#client-select');
+        if (clientSelect) {
+            clientSelect.value = invoice.clientId;
+        }
+        
+        // Vider la liste des articles
+        const itemsList = document.getElementById('items-list');
+        if (itemsList) {
+            itemsList.innerHTML = '';
+            
+            // Ajouter les articles de la facture
+            invoice.items.forEach(item => {
+                const itemRow = document.createElement('div');
+                itemRow.classList.add('item-row');
+                itemRow.innerHTML = `
+                    <select class="product-select" required>
+                        <option value="">${Translator.t('select_product')}</option>
+                        ${Product.getAll().map(product => 
+                            `<option value="${product.id}" data-price="${product.price}" ${product.id === item.productId ? 'selected' : ''}>${product.name}</option>`
+                        ).join('')}
+                    </select>
+                    <input type="number" class="quantity" min="1" value="${item.quantity}" required>
+                    <button type="button" class="remove-item">&times;</button>
+                `;
+                itemsList.appendChild(itemRow);
+                
+                // Ajouter les écouteurs d'événements pour les nouveaux éléments
+                const quantityInput = itemRow.querySelector('.quantity');
+                const productSelect = itemRow.querySelector('.product-select');
+                
+                if (quantityInput) {
+                    quantityInput.addEventListener('input', () => this.updateTotal());
+                }
+                
+                if (productSelect) {
+                    productSelect.addEventListener('change', () => this.updateTotal());
+                }
+                
+                // Ajouter un écouteur pour le bouton de suppression
+                const removeBtn = itemRow.querySelector('.remove-item');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', () => {
+                        if (document.querySelectorAll('.item-row').length > 1) {
+                            itemRow.remove();
+                            this.updateTotal();
+                        } else {
+                            alert(Translator.t('cannot_remove_last_item'));
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Mettre à jour le total
+        this.updateTotal();
+        
+        // Mettre à jour le bouton de soumission
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.textContent = Translator.t('update');
+        }
+        
+        // Afficher le modal
+        modal.classList.add('active');
+    }
+
     static handleInvoiceSubmit(form) {
+        const editId = form.getAttribute('data-edit-id');
         const clientId = form.querySelector('#client-select').value;
         const items = [];
 
@@ -1889,14 +2130,50 @@ class UI {
 
         if (clientId && items.length > 0) {
             try {
-                const invoice = new Invoice(clientId, items);
-                Invoice.add(invoice);
+                if (editId) {
+                    // Mode édition - modifier une facture existante
+                    const existingInvoice = Invoice.getById(editId);
+                    
+                    if (existingInvoice) {
+                        // Mettre à jour les propriétés de la facture
+                        existingInvoice.clientId = clientId;
+                        existingInvoice.items = items;
+                        existingInvoice.totalHT = existingInvoice.calculateTotalHT();
+                        existingInvoice.tva = existingInvoice.calculateTVA();
+                        existingInvoice.totalTTC = existingInvoice.calculateTotalTTC();
+                        
+                        // Sauvegarder les modifications
+                        existingInvoice.save();
+                        
+                        // Mettre à jour l'interface utilisateur
+                        this.updateInvoicesList();
+                        Invoice.updateDashboardStats();
+                        
+                        // Afficher un message de succès
+                        alert(Translator.t('invoice_updated') || 'Facture mise à jour avec succès !');
+                        location.reload(); // Recharger la page pour actualiser l'interface
+                    }
+                } else {
+                    // Mode création - créer une nouvelle facture
+                    const invoice = new Invoice(clientId, items);
+                    Invoice.add(invoice);
+                    
+                    // Afficher un message de succès
+                    alert(Translator.t('invoice_created') || 'Facture créée avec succès !');
+                }
+                
+                // Fermer le modal
                 document.getElementById('invoice-modal').classList.remove('active');
+                
+                // Réinitialiser le formulaire
                 form.reset();
+                form.removeAttribute('data-edit-id');
+                
+                // Réinitialiser les articles
                 document.getElementById('items-list').innerHTML = `
                     <div class="item-row">
                         <select class="product-select" required>
-                            <option value="">Sélectionner un produit</option>
+                            <option value="">${Translator.t('select_product') || 'Sélectionner un produit'}</option>
                             ${Product.getAll().map(product => 
                                 `<option value="${product.id}" data-price="${product.price}">${product.name}</option>`
                             ).join('')}
@@ -1907,131 +2184,20 @@ class UI {
                 `;
                 this.updateTotal();
                 
-                // Afficher un message de succès
-                alert('Facture créée avec succès !');
-                
                 // Rediriger vers la liste des factures si nous ne sommes pas déjà dessus
                 if (!document.querySelector('.invoices-list')) {
                     Router.navigateTo('invoices');
+                } else {
+                    // Mettre à jour la liste des factures si nous sommes déjà sur la page
+                    this.updateInvoicesList();
                 }
             } catch (error) {
-                console.error('Erreur lors de la création de la facture:', error);
-                alert('Une erreur est survenue lors de la création de la facture.');
+                console.error('Erreur lors de la gestion de la facture:', error);
+                alert(Translator.t('invoice_error') || 'Une erreur est survenue lors de la gestion de la facture.');
             }
         } else {
-            alert('Veuillez sélectionner un client et ajouter au moins un article.');
+            alert(Translator.t('invoice_validation_error') || 'Veuillez sélectionner un client et ajouter au moins un article.');
         }
-    }
-
-    initClientForm() {
-        const form = document.getElementById('client-form');
-        if (!form) return;
-
-        // Réinitialiser les gestionnaires d'événements existants
-        const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
-
-        // MAJ des libellés des champs
-        const labels = newForm.querySelectorAll('label');
-        labels.forEach(label => {
-            const inputId = label.getAttribute('for');
-            if (inputId === 'client-name') label.textContent = Translator.t('name');
-            if (inputId === 'client-email') label.textContent = Translator.t('email');
-            if (inputId === 'client-phone') label.textContent = Translator.t('phone');
-            if (inputId === 'client-address') label.textContent = Translator.t('address');
-        });
-
-        // MAJ des placeholders
-        newForm.querySelector('#client-name').placeholder = Translator.t('name');
-        newForm.querySelector('#client-email').placeholder = Translator.t('email');
-        newForm.querySelector('#client-phone').placeholder = Translator.t('phone');
-        newForm.querySelector('#client-address').placeholder = Translator.t('address');
-
-        // MAJ des boutons
-        newForm.querySelector('button[type="submit"]').textContent = Translator.t('save');
-        newForm.querySelector('button.cancel-button').textContent = Translator.t('cancel');
-
-        // Gestionnaire de soumission du formulaire
-        newForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = newForm.getAttribute('data-edit-id') || generateId();
-            const client = new Client(
-                id,
-                document.getElementById('client-name').value,
-                document.getElementById('client-email').value,
-                document.getElementById('client-phone').value,
-                document.getElementById('client-address').value
-            );
-            
-            client.save();
-            
-            // Fermer la modal
-            document.getElementById('client-modal').classList.remove('active');
-            
-            // Mettre à jour les listes et statistiques
-            this.updateDashboardStats();
-            this.renderClientsTable();
-            this.renderClientSelect();
-        });
-
-        // Gestionnaire pour le bouton Annuler
-        newForm.querySelector('.cancel-button').addEventListener('click', () => {
-            document.getElementById('client-modal').classList.remove('active');
-        });
-    }
-
-    initProductForm() {
-        const form = document.getElementById('product-form');
-        if (!form) return;
-
-        // Réinitialiser les gestionnaires d'événements existants
-        const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
-
-        // MAJ des libellés des champs
-        const labels = newForm.querySelectorAll('label');
-        labels.forEach(label => {
-            const inputId = label.getAttribute('for');
-            if (inputId === 'product-name') label.textContent = Translator.t('name');
-            if (inputId === 'product-price') label.textContent = Translator.t('price');
-            if (inputId === 'product-description') label.textContent = Translator.t('description');
-        });
-
-        // MAJ des placeholders
-        newForm.querySelector('#product-name').placeholder = Translator.t('name');
-        newForm.querySelector('#product-price').placeholder = Translator.t('price');
-        newForm.querySelector('#product-description').placeholder = Translator.t('description');
-
-        // MAJ des boutons
-        newForm.querySelector('button[type="submit"]').textContent = Translator.t('save');
-        newForm.querySelector('button.cancel-button').textContent = Translator.t('cancel');
-
-        // Gestionnaire de soumission du formulaire
-        newForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = newForm.getAttribute('data-edit-id') || generateId();
-            const product = new Product(
-                id,
-                document.getElementById('product-name').value,
-                parseFloat(document.getElementById('product-price').value) || 0,
-                document.getElementById('product-description').value
-            );
-            
-            product.save();
-            
-            // Fermer la modal
-            document.getElementById('product-modal').classList.remove('active');
-            
-            // Mettre à jour les listes et statistiques
-            this.updateDashboardStats();
-            this.renderProductsTable();
-            this.renderProductSelect();
-        });
-
-        // Gestionnaire pour le bouton Annuler
-        newForm.querySelector('.cancel-button').addEventListener('click', () => {
-            document.getElementById('product-modal').classList.remove('active');
-        });
     }
 }
 
@@ -2281,6 +2447,7 @@ class Router {
                                 <th>${Translator.t('name')}</th>
                                 <th>${Translator.t('price')}</th>
                                 <th>${Translator.t('description')}</th>
+                                <th>${Translator.t('stock')}</th>
                                 <th>${Translator.t('actions')}</th>
                             </tr>
                         </thead>
@@ -2311,7 +2478,40 @@ class Router {
                                 <label>${Translator.t('description')}</label>
                                 <textarea id="product-description"></textarea>
                             </div>
+                            <div class="form-group">
+                                <label>${Translator.t('stock')}</label>
+                                <input type="number" id="product-stock" min="0" value="0" required>
+                            </div>
                             <button type="submit" class="save-btn">${Translator.t('save')}</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal pour la gestion du stock -->
+            <div class="modal" id="stock-modal">
+                <div class="modal-content ${rtl ? 'rtl' : ''}">
+                    <div class="modal-header">
+                        <h2>${Translator.t('manage_stock')}</h2>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="stock-form">
+                            <input type="hidden" id="stock-product-id">
+                            <div class="form-group">
+                                <label>${Translator.t('product_name')}</label>
+                                <input type="text" id="stock-product-name" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>${Translator.t('current_stock')}</label>
+                                <input type="text" id="stock-product-current" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>${Translator.t('quantity')}</label>
+                                <input type="number" id="stock-product-quantity" required>
+                                <small class="form-help">${Translator.t('stock_quantity_help')}</small>
+                            </div>
+                            <button type="submit" class="save-btn">${Translator.t('update_stock')}</button>
                         </form>
                     </div>
                 </div>
