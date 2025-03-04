@@ -9,9 +9,9 @@ Une application web moderne et intuitive pour la gestion de factures, clients et
 - 👥 Gestion des clients
 - 📦 Gestion des produits
 - 💰 Suivi des paiements
-- 📱 Interface responsive
+- 📱 Interface responsive pour une utilisation sur tous les appareils
 - 🎨 Design moderne et personnalisable
-- 💾 Stockage local des données
+- 💾 Stockage local des données pour une utilisation hors ligne
 
 ## Installation
 
