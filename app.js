@@ -364,7 +364,19 @@ class Translator {
             'invoice_items': {
                 'fr': 'Articles de la facture',
                 'ar': 'منتجات الفاتورة'
-            }
+            },
+            'delete_invoice': {
+                'fr': 'Supprimer la facture',
+                'ar': 'حذف الفاتورة'
+            },
+            'edit_invoice': {
+                'fr': 'Modifier la facture',
+                'ar': 'تعديل الفاتورة'
+            },
+            'new_invoice': {
+                'fr': 'Nouvelle Facture',
+                'ar': 'فاتورة جديدة'
+            },
         };
     }
     
@@ -418,6 +430,10 @@ class Client {
         return Storage.getClients();
     }
 
+    static getById(clientId) {
+        return this.getAll().find(c => c.id === clientId);
+    }
+
     save() {
         const clients = Client.getAll();
         const index = clients.findIndex(c => c.id === this.id);
@@ -448,6 +464,10 @@ class Product {
 
     static getAll() {
         return Storage.getProducts();
+    }
+
+    static getById(productId) {
+        return this.getAll().find(p => p.id === productId);
     }
 
     save() {
@@ -1021,6 +1041,118 @@ class UI {
         this.initGlobalEventListeners();
     }
 
+    static handleInvoiceFormOpen(invoiceId = null) {
+        const modal = document.getElementById('invoice-modal');
+        if (!modal) return;
+
+        // Mise à jour du titre de la fenêtre modale
+        const modalTitle = modal.querySelector('.modal-header h2');
+        if (modalTitle) {
+            if (invoiceId) {
+                modalTitle.textContent = Translator.t('edit_invoice');
+            } else {
+                modalTitle.textContent = Translator.t('new_invoice');
+            }
+        }
+
+        modal.classList.add('active');
+        
+        // Réinitialiser le formulaire et les composants
+        this.initInvoiceForm();
+        
+        // Peupler les listes déroulantes
+        this.populateClientSelect();
+        this.populateProductSelect();
+
+        if (invoiceId) {
+            // Mode édition : charger les données de la facture
+            const invoice = Invoice.getById(invoiceId);
+            if (invoice) {
+                // Définir la date
+                const dateInput = document.getElementById('invoice-date');
+                if (dateInput) {
+                    dateInput.value = invoice.date;
+                }
+
+                // Définir le client
+                const clientHiddenInput = document.getElementById('client-select-value');
+                const clientSearchInput = document.getElementById('client-search');
+                if (clientHiddenInput && clientSearchInput) {
+                    clientHiddenInput.value = invoice.clientId;
+                    const client = Client.getById(invoice.clientId);
+                    if (client) {
+                        clientSearchInput.value = client.name;
+                    }
+                }
+
+                // Supprimer les articles existants
+                const itemsList = document.getElementById('items-list');
+                if (itemsList) {
+                    itemsList.innerHTML = '';
+                }
+
+                // Ajouter chaque article de la facture
+                if (invoice.items && invoice.items.length) {
+                    invoice.items.forEach(item => {
+                        const itemRow = document.createElement('div');
+                        itemRow.classList.add('item-row');
+                        itemRow.innerHTML = `
+                            <div class="searchable-select-container">
+                                <div class="select-search-wrapper">
+                                    <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
+                                    <i class="fas fa-search search-icon"></i>
+                                </div>
+                                <div class="select-dropdown product-dropdown">
+                                    <ul class="product-options"></ul>
+                                </div>
+                                <input type="hidden" class="product-select-value" required>
+                            </div>
+                            <input type="number" class="quantity" min="1" value="${item.quantity}" required>
+                            <button type="button" class="remove-item">&times;</button>
+                        `;
+                        itemsList.appendChild(itemRow);
+                        
+                        // Initialiser le select avec recherche
+                        const searchInput = itemRow.querySelector('.product-search');
+                        const dropdown = itemRow.querySelector('.product-dropdown');
+                        const optionsList = itemRow.querySelector('.product-options');
+                        const hiddenInput = itemRow.querySelector('.product-select-value');
+                        
+                        this.setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput);
+                        
+                        // Sélectionner le produit
+                        const product = Product.getById(item.productId);
+                        if (product) {
+                            hiddenInput.value = product.id;
+                            hiddenInput.dataset.price = product.price;
+                            searchInput.value = product.name;
+                        }
+                        
+                        // Ajouter les écouteurs d'événements pour les nouveaux éléments
+                        const quantityInput = itemRow.querySelector('.quantity');
+                        
+                        if (quantityInput) {
+                            quantityInput.addEventListener('input', () => this.updateTotal());
+                        }
+                        
+                        if (hiddenInput) {
+                            hiddenInput.addEventListener('change', () => this.updateTotal());
+                        }
+                    });
+                }
+
+                // Définir l'ID de la facture en cours d'édition
+                const form = document.getElementById('invoice-form');
+                if (form) {
+                    form.dataset.editId = invoiceId;
+                }
+
+                // Mettre à jour le total
+                this.updateTotal();
+            }
+        }
+    }
+
     static initModals() {
         // Supprimer les anciens event listeners en clonant et remplaçant les boutons
         const newInvoiceBtn = document.querySelector('.new-invoice-btn');
@@ -1031,16 +1163,26 @@ class UI {
             const invoiceModal = document.getElementById('invoice-modal');
             if (invoiceModal) {
                 newBtn.addEventListener('click', () => {
-                    invoiceModal.classList.add('active');
-                    this.populateClientSelect();
-                    this.populateProductSelect();
-                    this.initInvoiceForm(); // Réinitialiser le formulaire
+                    this.handleInvoiceFormOpen();
                 });
 
                 const closeBtn = invoiceModal.querySelector('.close-modal');
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => {
                         invoiceModal.classList.remove('active');
+                        // Réinitialiser complètement le formulaire lors de la fermeture
+                        const form = document.getElementById('invoice-form');
+                        if (form) {
+                            form.reset();
+                            // Supprimer l'ID de facture en cours d'édition
+                            delete form.dataset.editId;
+                            // Vider la liste des articles
+                            const itemsList = document.getElementById('items-list');
+                            if (itemsList) {
+                                itemsList.innerHTML = '';
+                                this.addItemRow(); // Ajouter une ligne vide
+                            }
+                        }
                     });
                 }
             }
@@ -1138,95 +1280,267 @@ class UI {
             itemsTitle.textContent = Translator.t('invoice_items');
         }
 
+        // Initialiser les selects avec recherche
+        this.initSearchableSelects();
+        
         // Gestionnaire pour l'ajout d'articles
         const addItemBtn = document.getElementById('add-item');
         if (addItemBtn) {
             addItemBtn.textContent = Translator.t('add_item');
-            addItemBtn.addEventListener('click', () => {
-                const itemsList = document.getElementById('items-list');
-                const itemRow = document.createElement('div');
-                itemRow.classList.add('item-row');
-                itemRow.innerHTML = `
-                    <select class="product-select" required>
-                        <option value="">${Translator.t('select_product')}</option>
-                        ${Product.getAll().map(product => 
-                            `<option value="${product.id}" data-price="${product.price}">${product.name}</option>`
-                        ).join('')}
-                    </select>
-                    <input type="number" class="quantity" min="1" value="1" required>
-                    <button type="button" class="remove-item">&times;</button>
-                `;
-                itemsList.appendChild(itemRow);
-
-                // Mise à jour du total lors des changements
-                const quantityInput = itemRow.querySelector('.quantity');
-                const productSelect = itemRow.querySelector('.product-select');
-                
-                quantityInput.addEventListener('input', () => this.updateTotal());
-                productSelect.addEventListener('change', () => this.updateTotal());
-                
-                // Mettre à jour le total immédiatement
-                this.updateTotal();
-            });
+            addItemBtn.addEventListener('click', () => this.addItemRow());
         }
-
-        // Gestionnaire pour la suppression d'articles
+        
+        // Supprimer les éléments existants du formulaire
         const itemsList = document.getElementById('items-list');
         if (itemsList) {
+            itemsList.innerHTML = '';
+            // Ajouter une ligne initiale vide
+            this.addItemRow();
+            
+            // Gestionnaire pour la suppression d'articles
             itemsList.addEventListener('click', (e) => {
                 if (e.target.classList.contains('remove-item')) {
-                    e.target.closest('.item-row').remove();
-                    this.updateTotal();
-                }
-            });
-
-            // Ajouter des écouteurs d'événements pour les éléments existants
-            itemsList.querySelectorAll('.item-row').forEach(row => {
-                const quantityInput = row.querySelector('.quantity');
-                const productSelect = row.querySelector('.product-select');
-                
-                if (quantityInput && productSelect) {
-                    quantityInput.addEventListener('input', () => this.updateTotal());
-                    productSelect.addEventListener('change', () => this.updateTotal());
+                    // Vérifier s'il reste plus d'un article
+                    const itemRows = document.querySelectorAll('.item-row');
+                    if (itemRows.length > 1) {
+                        e.target.closest('.item-row').remove();
+                        this.updateTotal();
+                    } else {
+                        alert(Translator.t('cannot_remove_last_item'));
+                    }
                 }
             });
         }
-
-        // Gestionnaire pour la soumission du formulaire
+        
+        // Event listener pour la soumission du formulaire
         newForm.addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleInvoiceSubmit(newForm);
         });
-
-        // Initialiser le total
+        
+        // Retirer l'ID de la facture en cours d'édition
+        delete newForm.dataset.editId;
+        
+        // Vider les selects
+        document.getElementById('client-search').value = '';
+        document.getElementById('client-select-value').value = '';
+        
+        // Mise à jour de la date au jour actuel
+        const dateInput = document.getElementById('invoice-date');
+        if (dateInput) {
+            const today = new Date();
+            dateInput.value = today.toISOString().slice(0, 10);
+        }
+    }
+    
+    static addItemRow() {
+        const itemsList = document.getElementById('items-list');
+        if (!itemsList) return;
+        
+        const itemRow = document.createElement('div');
+        itemRow.classList.add('item-row');
+        itemRow.innerHTML = `
+            <div class="searchable-select-container">
+                <div class="select-search-wrapper">
+                    <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <div class="select-dropdown product-dropdown">
+                    <ul class="product-options"></ul>
+                </div>
+                <input type="hidden" class="product-select-value" required>
+            </div>
+            <input type="number" class="quantity" min="1" value="1" required>
+            <button type="button" class="remove-item">&times;</button>
+        `;
+        itemsList.appendChild(itemRow);
+        
+        // Initialiser le nouveau select avec recherche
+        const searchInput = itemRow.querySelector('.product-search');
+        const dropdown = itemRow.querySelector('.product-dropdown');
+        const optionsList = itemRow.querySelector('.product-options');
+        const hiddenInput = itemRow.querySelector('.product-select-value');
+        const quantityInput = itemRow.querySelector('.quantity');
+        
+        this.setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput);
+        
+        // Mise à jour du total lors des changements
+        quantityInput.addEventListener('input', () => this.updateTotal());
+        hiddenInput.addEventListener('change', () => this.updateTotal());
+        
+        // Mettre à jour le total immédiatement
         this.updateTotal();
-        this.populateClientSelect();
-        console.log('initInvoiceForm called, resetting form');
-        form.reset(); // Réinitialiser tous les champs du formulaire
+        
+        return itemRow;
     }
 
-    static populateClientSelect() {
-        const select = document.getElementById('client-select');
-        select.innerHTML = '<option value="">Sélectionner un client</option>';
-        Client.getAll().forEach(client => {
-            select.innerHTML += `<option value="${client.id}">${client.name}</option>`;
+    static initSearchableSelects() {
+        // Initialiser les selects pour clients
+        const clientSearchInput = document.getElementById('client-search');
+        const clientDropdown = document.getElementById('client-dropdown');
+        const clientOptionsList = document.getElementById('client-options');
+        const clientHiddenInput = document.getElementById('client-select-value');
+        
+        if (clientSearchInput && clientDropdown && clientOptionsList && clientHiddenInput) {
+            this.setupClientSearchableSelect(clientSearchInput, clientDropdown, clientOptionsList, clientHiddenInput);
+        }
+        
+        // Initialiser les selects pour produits
+        const productSearchInputs = document.querySelectorAll('.product-search');
+        productSearchInputs.forEach(searchInput => {
+            const dropdown = searchInput.closest('.searchable-select-container').querySelector('.product-dropdown');
+            const optionsList = searchInput.closest('.searchable-select-container').querySelector('.product-options');
+            const hiddenInput = searchInput.closest('.searchable-select-container').querySelector('.product-select-value');
+            
+            if (dropdown && optionsList && hiddenInput) {
+                this.setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput);
+            }
+        });
+    }
+    
+    static setupClientSearchableSelect(searchInput, dropdown, optionsList, hiddenInput) {
+        // Charger toutes les options
+        const clients = Client.getAll();
+        this.populateClientOptions(optionsList, clients);
+        
+        // Gestionnaire d'événements pour la recherche
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredClients = clients.filter(client => 
+                client.name.toLowerCase().includes(searchTerm) || 
+                (client.email && client.email.toLowerCase().includes(searchTerm))
+            );
+            this.populateClientOptions(optionsList, filteredClients);
+            dropdown.classList.add('active');
+        });
+        
+        // Ouvrir le dropdown au focus
+        searchInput.addEventListener('focus', () => {
+            dropdown.classList.add('active');
+        });
+        
+        // Gérer la sélection d'une option
+        optionsList.addEventListener('click', (e) => {
+            const selectedLi = e.target.closest('li');
+            if (selectedLi) {
+                const selectedId = selectedLi.dataset.id;
+                const selectedName = selectedLi.textContent.trim();
+                hiddenInput.value = selectedId;
+                searchInput.value = selectedName;
+                dropdown.classList.remove('active');
+                
+                // Déclencher l'événement change pour le tracking
+                const event = new Event('change');
+                hiddenInput.dispatchEvent(event);
+            }
+        });
+        
+        // Fermer le dropdown lorsqu'on clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+    }
+    
+    static setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput) {
+        // Charger toutes les options
+        const products = Product.getAll();
+        this.populateProductOptions(optionsList, products);
+        
+        // Gestionnaire d'événements pour la recherche
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredProducts = products.filter(product => 
+                product.name.toLowerCase().includes(searchTerm) || 
+                (product.description && product.description.toLowerCase().includes(searchTerm))
+            );
+            this.populateProductOptions(optionsList, filteredProducts);
+            dropdown.classList.add('active');
+        });
+        
+        // Ouvrir le dropdown au focus
+        searchInput.addEventListener('focus', () => {
+            dropdown.classList.add('active');
+        });
+        
+        // Gérer la sélection d'une option
+        optionsList.addEventListener('click', (e) => {
+            const selectedLi = e.target.closest('li');
+            if (selectedLi) {
+                const selectedId = selectedLi.dataset.id;
+                const selectedName = selectedLi.textContent.trim();
+                const selectedPrice = selectedLi.dataset.price;
+                hiddenInput.value = selectedId;
+                hiddenInput.dataset.price = selectedPrice;
+                searchInput.value = selectedName;
+                dropdown.classList.remove('active');
+                
+                // Déclencher l'événement change pour le tracking
+                const event = new Event('change');
+                hiddenInput.dispatchEvent(event);
+                
+                // Mettre à jour le total
+                this.updateTotal();
+            }
+        });
+        
+        // Fermer le dropdown lorsqu'on clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+    }
+    
+    static populateClientOptions(optionsList, clients) {
+        optionsList.innerHTML = '';
+        
+        if (clients.length === 0) {
+            optionsList.innerHTML = '<li class="no-results">Aucun client trouvé</li>';
+            return;
+        }
+        
+        clients.forEach(client => {
+            const li = document.createElement('li');
+            li.textContent = client.name;
+            li.dataset.id = client.id;
+            optionsList.appendChild(li);
+        });
+    }
+    
+    static populateProductOptions(optionsList, products) {
+        optionsList.innerHTML = '';
+        
+        if (products.length === 0) {
+            optionsList.innerHTML = '<li class="no-results">Aucun produit trouvé</li>';
+            return;
+        }
+        
+        products.forEach(product => {
+            const li = document.createElement('li');
+            li.textContent = product.name;
+            li.dataset.id = product.id;
+            li.dataset.price = product.price;
+            optionsList.appendChild(li);
         });
     }
 
+    static populateClientSelect() {
+        const clientOptionsList = document.getElementById('client-options');
+        if (!clientOptionsList) return;
+        
+        const clients = Client.getAll();
+        this.populateClientOptions(clientOptionsList, clients);
+    }
+
     static populateProductSelect() {
-        const productSelects = document.querySelectorAll('.product-select');
-        if (!productSelects.length) return;
-
+        const productOptionsLists = document.querySelectorAll('.product-options');
+        if (!productOptionsLists.length) return;
+        
         const products = Product.getAll();
-        const options = `
-            <option value="">Sélectionner un produit</option>
-            ${products.map(product => 
-                `<option value="${product.id}" data-price="${product.price}">${product.name}</option>`
-            ).join('')}
-        `;
-
-        productSelects.forEach(select => {
-            select.innerHTML = options;
+        productOptionsLists.forEach(optionsList => {
+            this.populateProductOptions(optionsList, products);
         });
     }
 
@@ -1238,10 +1552,9 @@ class UI {
         const itemRows = document.querySelectorAll('.item-row');
         
         itemRows.forEach(row => {
-            const select = row.querySelector('.product-select');
+            const hiddenInput = row.querySelector('.product-select-value');
             const quantity = parseInt(row.querySelector('.quantity')?.value) || 0;
-            const selectedOption = select?.options[select.selectedIndex];
-            const price = selectedOption ? parseFloat(selectedOption.dataset.price) || 0 : 0;
+            const price = hiddenInput && hiddenInput.dataset.price ? parseFloat(hiddenInput.dataset.price) || 0 : 0;
             total += quantity * price;
         });
 
@@ -1263,7 +1576,7 @@ class UI {
                 <td>${invoice.id}</td>
                 <td>${client ? client.name : 'Client inconnu'}</td>
                 <td>${new Date(invoice.date).toLocaleDateString()}</td>
-                <td>${Invoice.formatAmount(invoice.totalTTC, invoice.currency)}</td>
+                <td>${Invoice.formatAmount(invoice.totalTTC)}</td>
                 <td>
                     <span class="status-badge ${invoice.status} clickable" data-invoice-id="${invoice.id}">
                         ${invoice.status === 'paid' ? 'Payée' : 'En attente'}
@@ -1594,8 +1907,6 @@ class UI {
         const newProductBtn = document.querySelector('.new-product-btn');
         const productModal = document.getElementById('product-modal');
         const productForm = document.getElementById('product-form');
-        const stockModal = document.getElementById('stock-modal');
-        const stockForm = document.getElementById('stock-form');
 
         if (newProductBtn && productModal) {
             newProductBtn.addEventListener('click', () => {
@@ -1611,13 +1922,6 @@ class UI {
             // Fermeture du modal
             productModal.querySelector('.close-modal').addEventListener('click', () => {
                 productModal.classList.remove('active');
-            });
-        }
-        
-        // Fermeture du modal de stock
-        if (stockModal) {
-            stockModal.querySelector('.close-modal').addEventListener('click', () => {
-                stockModal.classList.remove('active');
             });
         }
 
@@ -1714,11 +2018,12 @@ class UI {
                 this.updateProductsList();
                 document.getElementById('product-modal').classList.remove('active');
                 newProductForm.reset();
-                newProductForm.removeAttribute('data-edit-id');
+                productForm.removeAttribute('data-edit-id');
             });
         }
         
         // Soumission du formulaire de gestion de stock
+        const stockForm = document.getElementById('stock-form');
         if (stockForm) {
             // Supprimer les anciens event listeners
             const newStockForm = stockForm.cloneNode(true);
@@ -1916,7 +2221,7 @@ class UI {
                             <td>${invoice.id}</td>
                             <td>${client ? client.name : 'Client inconnu'}</td>
                             <td>${new Date(invoice.date).toLocaleDateString()}</td>
-                            <td>${Invoice.formatAmount(invoice.totalTTC, invoice.currency)}</td>
+                            <td>${Invoice.formatAmount(invoice.totalTTC)}</td>
                             <td>
                                 <span class="status-badge ${invoice.status} clickable" data-invoice-id="${invoice.id}">
                                     ${invoice.status === 'paid' ? 'Payée' : 'En attente'}
@@ -2034,17 +2339,25 @@ class UI {
             modalTitle.textContent = Translator.t('edit_invoice');
         }
 
+        // Réinitialiser le formulaire et les composants de sélection avec recherche
+        this.initInvoiceForm();
+        
         // Récupérer le formulaire
         const form = document.getElementById('invoice-form');
         if (!form) return;
         
         // Stocker l'ID de la facture en cours de modification
-        form.setAttribute('data-edit-id', invoiceId);
+        form.dataset.editId = invoiceId;
         
-        // Sélectionner le client
-        const clientSelect = form.querySelector('#client-select');
-        if (clientSelect) {
-            clientSelect.value = invoice.clientId;
+        // Sélectionner le client dans la liste déroulante avec recherche
+        const clientHiddenInput = document.getElementById('client-select-value');
+        const clientSearchInput = document.getElementById('client-search');
+        if (clientHiddenInput && clientSearchInput) {
+            clientHiddenInput.value = invoice.clientId;
+            const client = Client.getById(invoice.clientId);
+            if (client) {
+                clientSearchInput.value = client.name;
+            }
         }
         
         // Vider la liste des articles
@@ -2057,44 +2370,50 @@ class UI {
                 const itemRow = document.createElement('div');
                 itemRow.classList.add('item-row');
                 itemRow.innerHTML = `
-                    <select class="product-select" required>
-                        <option value="">${Translator.t('select_product')}</option>
-                        ${Product.getAll().map(product => 
-                            `<option value="${product.id}" data-price="${product.price}" ${product.id === item.productId ? 'selected' : ''}>${product.name}</option>`
-                        ).join('')}
-                    </select>
+                    <div class="searchable-select-container">
+                        <div class="select-search-wrapper">
+                            <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <div class="select-dropdown product-dropdown">
+                            <ul class="product-options"></ul>
+                        </div>
+                        <input type="hidden" class="product-select-value" required>
+                    </div>
                     <input type="number" class="quantity" min="1" value="${item.quantity}" required>
                     <button type="button" class="remove-item">&times;</button>
                 `;
                 itemsList.appendChild(itemRow);
                 
+                // Initialiser le select avec recherche
+                const searchInput = itemRow.querySelector('.product-search');
+                const dropdown = itemRow.querySelector('.product-dropdown');
+                const optionsList = itemRow.querySelector('.product-options');
+                const hiddenInput = itemRow.querySelector('.product-select-value');
+                
+                this.setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput);
+                
+                // Sélectionner le produit
+                const product = Product.getById(item.productId);
+                if (product) {
+                    hiddenInput.value = product.id;
+                    hiddenInput.dataset.price = product.price;
+                    searchInput.value = product.name;
+                }
+                
                 // Ajouter les écouteurs d'événements pour les nouveaux éléments
                 const quantityInput = itemRow.querySelector('.quantity');
-                const productSelect = itemRow.querySelector('.product-select');
                 
                 if (quantityInput) {
                     quantityInput.addEventListener('input', () => this.updateTotal());
                 }
                 
-                if (productSelect) {
-                    productSelect.addEventListener('change', () => this.updateTotal());
-                }
-                
-                // Ajouter un écouteur pour le bouton de suppression
-                const removeBtn = itemRow.querySelector('.remove-item');
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', () => {
-                        if (document.querySelectorAll('.item-row').length > 1) {
-                            itemRow.remove();
-                            this.updateTotal();
-                        } else {
-                            alert(Translator.t('cannot_remove_last_item'));
-                        }
-                    });
+                if (hiddenInput) {
+                    hiddenInput.addEventListener('change', () => this.updateTotal());
                 }
             });
         }
-        
+
         // Mettre à jour le total
         this.updateTotal();
         
@@ -2109,13 +2428,13 @@ class UI {
     }
 
     static handleInvoiceSubmit(form) {
-        const editId = form.getAttribute('data-edit-id');
-        const clientId = form.querySelector('#client-select').value;
+        const editId = form.dataset.editId;
+        const clientId = document.getElementById('client-select-value').value;
         const items = [];
 
         form.querySelectorAll('.item-row').forEach(row => {
-            const productSelect = row.querySelector('.product-select');
-            const product = Product.getAll().find(p => p.id === productSelect.value);
+            const hiddenInput = row.querySelector('.product-select-value');
+            const product = Product.getById(hiddenInput.value);
             const quantity = parseInt(row.querySelector('.quantity').value);
 
             if (product && quantity) {
@@ -2172,12 +2491,16 @@ class UI {
                 // Réinitialiser les articles
                 document.getElementById('items-list').innerHTML = `
                     <div class="item-row">
-                        <select class="product-select" required>
-                            <option value="">${Translator.t('select_product') || 'Sélectionner un produit'}</option>
-                            ${Product.getAll().map(product => 
-                                `<option value="${product.id}" data-price="${product.price}">${product.name}</option>`
-                            ).join('')}
-                        </select>
+                        <div class="searchable-select-container">
+                            <div class="select-search-wrapper">
+                                <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <div class="select-dropdown product-dropdown">
+                                <ul class="product-options"></ul>
+                            </div>
+                            <input type="hidden" class="product-select-value" required>
+                        </div>
                         <input type="number" class="quantity" min="1" value="1" required>
                         <button type="button" class="remove-item">&times;</button>
                     </div>

@@ -119,17 +119,31 @@
                 <form id="invoice-form">
                     <div class="form-group">
                         <label>Client</label>
-                        <select id="client-select" required>
-                            <option value="">Sélectionner un client</option>
-                        </select>
+                        <div class="searchable-select-container">
+                            <div class="select-search-wrapper">
+                                <input type="text" class="select-search" id="client-search" placeholder="Rechercher un client...">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <div class="select-dropdown" id="client-dropdown">
+                                <ul id="client-options"></ul>
+                            </div>
+                            <input type="hidden" id="client-select-value" required>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Articles</label>
                         <div id="items-list">
                             <div class="item-row">
-                                <select class="product-select" required>
-                                    <option value="">Sélectionner un produit</option>
-                                </select>
+                                <div class="searchable-select-container">
+                                    <div class="select-search-wrapper">
+                                        <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
+                                        <i class="fas fa-search search-icon"></i>
+                                    </div>
+                                    <div class="select-dropdown product-dropdown">
+                                        <ul class="product-options"></ul>
+                                    </div>
+                                    <input type="hidden" class="product-select-value" required>
+                                </div>
                                 <input type="number" class="quantity" min="1" value="1" required>
                                 <button type="button" class="remove-item">&times;</button>
                             </div>
@@ -150,4 +164,4 @@
 
     <script src="app.js"></script>
 </body>
-</html> 
+</html>
