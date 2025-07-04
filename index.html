@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         @media print {
             body * {
@@ -38,6 +39,7 @@
                     <li><a href="#invoices"><i class="fas fa-file-invoice"></i> Factures</a></li>
                     <li><a href="#clients"><i class="fas fa-users"></i> Clients</a></li>
                     <li><a href="#products"><i class="fas fa-box"></i> Produits</a></li>
+                    <li><a href="#employees"><i class="fas fa-user-tie"></i> Employés</a></li>
                     <li><a href="#settings"><i class="fas fa-cog"></i> Paramètres</a></li>
                 </ul>
             </nav>
@@ -45,70 +47,11 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="top-bar">
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Rechercher...">
-                </div>
-                <div class="user-menu">
-                    <button class="new-invoice-btn"><i class="fas fa-plus"></i> Nouvelle Facture</button>
-                    <div class="profile">
-                        <img src="https://via.placeholder.com/40" alt="Profile" class="profile-img">
-                        <span>John Doe</span>
-                    </div>
-                </div>
-            </header>
-
-            <div class="dashboard">
-                <div class="stats-container">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-euro-sign"></i></div>
-                        <div class="stat-info">
-                            <h3>Chiffre d'affaires</h3>
-                            <p class="amount">0 €</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
-                        <div class="stat-info">
-                            <h3>Factures en attente</h3>
-                            <p class="amount">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-info">
-                            <h3>Clients actifs</h3>
-                            <p class="amount">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="recent-invoices">
-                    <h2>Factures récentes</h2>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>N° Facture</th>
-                                    <th>Client</th>
-                                    <th>Date</th>
-                                    <th>Montant</th>
-                                    <th>Statut</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="invoices-list">
-                                <!-- Les factures seront ajoutées dynamiquement ici -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            <!-- Le contenu sera injecté ici par le routeur -->
         </main>
     </div>
 
-    <!-- Modal pour nouvelle facture -->
+    <!-- Modal pour nouvelle/modifier facture -->
     <div class="modal" id="invoice-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -116,10 +59,10 @@
                 <button class="close-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="invoice-form">
+                <form id="invoice-form" data-edit-id="">
                     <div class="form-group">
                         <label>Client</label>
-                        <div class="searchable-select-container">
+                        <div class="searchable-select-container" id="client-select-container">
                             <div class="select-search-wrapper">
                                 <input type="text" class="select-search" id="client-search" placeholder="Rechercher un client...">
                                 <i class="fas fa-search search-icon"></i>
@@ -131,22 +74,13 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="invoice-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
                         <label>Articles</label>
                         <div id="items-list">
-                            <div class="item-row">
-                                <div class="searchable-select-container">
-                                    <div class="select-search-wrapper">
-                                        <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
-                                        <i class="fas fa-search search-icon"></i>
-                                    </div>
-                                    <div class="select-dropdown product-dropdown">
-                                        <ul class="product-options"></ul>
-                                    </div>
-                                    <input type="hidden" class="product-select-value" required>
-                                </div>
-                                <input type="number" class="quantity" min="1" value="1" required>
-                                <button type="button" class="remove-item">&times;</button>
-                            </div>
+                            <!-- Les lignes d'articles seront ajoutées ici -->
                         </div>
                         <button type="button" id="add-item" class="add-item-btn">
                             <i class="fas fa-plus"></i> Ajouter un article
@@ -161,6 +95,159 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal pour nouveau/modifier client -->
+    <div class="modal" id="client-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="client-modal-title">Nouveau Client</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="client-form">
+                    <input type="hidden" id="client-id">
+                    <div class="form-group">
+                        <label for="client-name">Nom</label>
+                        <input type="text" id="client-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-email">Email</label>
+                        <input type="email" id="client-email">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-phone">Téléphone</label>
+                        <input type="tel" id="client-phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-address">Adresse</label>
+                        <textarea id="client-address"></textarea>
+                    </div>
+                    <button type="submit" class="save-btn">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour nouveau/modifier produit -->
+    <div class="modal" id="product-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="product-modal-title">Nouveau Produit</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="product-form">
+                    <input type="hidden" id="product-id">
+                    <div class="form-group">
+                        <label for="product-name">Nom du produit</label>
+                        <input type="text" id="product-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-price">Prix</label>
+                        <input type="number" id="product-price" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-description">Description</label>
+                        <textarea id="product-description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-stock">Stock Initial</label>
+                        <input type="number" id="product-stock" min="0" value="0">
+                    </div>
+                    <button type="submit" class="save-btn">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour nouvel/modifier employé -->
+    <div class="modal" id="employee-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="employee-modal-title">Nouvel Employé</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="employee-form">
+                    <input type="hidden" id="employee-id">
+                    <div class="form-group">
+                        <label for="employee-name">Nom</label>
+                        <input type="text" id="employee-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="employee-position">Poste</label>
+                        <input type="text" id="employee-position">
+                    </div>
+                    <div class="form-group">
+                        <label for="employee-hire-date">Date d'embauche</label>
+                        <input type="date" id="employee-hire-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="employee-salary">Salaire de base</label>
+                        <input type="number" id="employee-salary" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="employee-nss">N° Sécurité Sociale</label>
+                        <input type="text" id="employee-nss">
+                    </div>
+                    <div class="form-group">
+                        <label for="employee-family-sit">Situation Familiale</label>
+                        <select id="employee-family-sit">
+                            <option value="C">Célibataire</option>
+                            <option value="M">Marié(e)</option>
+                            <option value="D">Divorcé(e)</option>
+                            <option value="V">Veuf(ve)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="save-btn">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmation -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content small-modal">
+            <div class="modal-header">
+                <h2 id="confirm-modal-title">Confirmation</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-modal-text">Êtes-vous sûr ?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-modal-cancel" class="btn btn-secondary">Annuler</button>
+                <button id="confirm-modal-confirm" class="btn btn-danger">Confirmer</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal pour Gérer le Stock -->
+    <div class="modal" id="stock-modal">
+        <div class="modal-content small-modal">
+            <div class="modal-header">
+                <h2 id="stock-modal-title">Gérer le stock</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="stock-form">
+                    <input type="hidden" id="stock-product-id">
+                    <h3 id="stock-product-name"></h3>
+                    <p id="stock-current-quantity"></p>
+                    <div class="form-group">
+                        <label for="stock-quantity-change">Quantité à ajouter/retirer</label>
+                        <input type="number" id="stock-quantity-change" required>
+                        <p class="form-help-text">Entrez une valeur positive pour augmenter le stock ou négative pour le diminuer.</p>
+                    </div>
+                    <button type="submit" class="save-btn">Mettre à jour le stock</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Conteneur pour les notifications (toasts) -->
+    <div id="toast-container"></div>
 
     <script src="app.js"></script>
 </body>
