@@ -1,3 +1,4 @@
+
 // Gestion du stockage local
 class Storage {
     static getClients() {
@@ -23,11 +24,20 @@ class Storage {
     static setProducts(products) {
         localStorage.setItem('products', JSON.stringify(products));
     }
+    
+    static getEmployees() {
+        return JSON.parse(localStorage.getItem('employees')) || [];
+    }
+
+    static setEmployees(employees) {
+        localStorage.setItem('employees', JSON.stringify(employees));
+    }
 
     static getSettings() {
         return JSON.parse(localStorage.getItem('company-settings')) || {
             currency: 'DZD', // Devise par défaut
-            language: 'fr' // Langue par défaut: français
+            language: 'fr', // Langue par défaut: français
+            adherent: '' // Nouveau champ pour le N° Adhérent
         };
     }
 
@@ -41,373 +51,165 @@ class Translator {
     static get translations() {
         return {
             // Termes généraux
-            'dashboard': {
-                'fr': 'Tableau de bord',
-                'ar': 'لوحة التحكم'
-            },
-            'invoices': {
-                'fr': 'Factures',
-                'ar': 'الفواتير'
-            },
-            'clients': {
-                'fr': 'Clients',
-                'ar': 'العملاء'
-            },
-            'products': {
-                'fr': 'Produits',
-                'ar': 'المنتجات'
-            },
-            'settings': {
-                'fr': 'Paramètres',
-                'ar': 'الإعدادات'
-            },
-            'search': {
-                'fr': 'Rechercher...',
-                'ar': 'بحث...'
-            },
-            'new_invoice': {
-                'fr': 'Nouvelle Facture',
-                'ar': 'فاتورة جديدة'
-            },
-            'new_client': {
-                'fr': 'Nouveau Client',
-                'ar': 'عميل جديد'
-            },
-            'new_product': {
-                'fr': 'Nouveau Produit',
-                'ar': 'منتج جديد'
-            },
-            'save': {
-                'fr': 'Enregistrer',
-                'ar': 'حفظ'
-            },
-            'update': {
-                'fr': 'Mettre à jour',
-                'ar': 'تحديث'
-            },
-            'cancel': {
-                'fr': 'Annuler',
-                'ar': 'إلغاء'
-            },
-            'delete': {
-                'fr': 'Supprimer',
-                'ar': 'حذف'
-            },
-            'edit': {
-                'fr': 'Modifier',
-                'ar': 'تعديل'
-            },
-            'edit_invoice': {
-                'fr': 'Modifier la facture',
-                'ar': 'تعديل الفاتورة'
-            },
-            'update': {
-                'fr': 'Mettre à jour',
-                'ar': 'تحديث'
-            },
-            'invoice_updated': {
-                'fr': 'Facture mise à jour avec succès !',
-                'ar': 'تم تحديث الفاتورة بنجاح!'
-            },
-            'invoice_created': {
-                'fr': 'Facture créée avec succès !',
-                'ar': 'تم إنشاء الفاتورة بنجاح!'
-            },
-            'invoice_error': {
-                'fr': 'Une erreur est survenue lors de la gestion de la facture.',
-                'ar': 'حدث خطأ أثناء إدارة الفاتورة.'
-            },
-            'invoice_validation_error': {
-                'fr': 'Veuillez sélectionner un client et ajouter au moins un article.',
-                'ar': 'يرجى تحديد عميل وإضافة عنصر واحد على الأقل.'
-            },
-            'cannot_remove_last_item': {
-                'fr': 'Impossible de supprimer le dernier article.',
-                'ar': 'لا يمكن إزالة العنصر الأخير.'
-            },
-            'actions': {
-                'fr': 'Actions',
-                'ar': 'إجراءات'
-            },
-            'status': {
-                'fr': 'Statut',
-                'ar': 'الحالة'
-            },
-            'paid': {
-                'fr': 'Payée',
-                'ar': 'مدفوعة'
-            },
-            'pending': {
-                'fr': 'En attente',
-                'ar': 'في الانتظار'
-            },
-            'total': {
-                'fr': 'Total',
-                'ar': 'المجموع'
-            },
-            'total_ht': {
-                'fr': 'Total HT',
-                'ar': 'المجموع بدون ضريبة'
-            },
-            'vat': {
-                'fr': 'TVA',
-                'ar': 'الضريبة'
-            },
-            'total_ttc': {
-                'fr': 'Total TTC',
-                'ar': 'المجموع مع الضريبة'
-            },
+            'dashboard': { 'fr': 'Tableau de bord', 'ar': 'لوحة التحكم' },
+            'invoices': { 'fr': 'Factures', 'ar': 'الفواتير' },
+            'clients': { 'fr': 'Clients', 'ar': 'العملاء' },
+            'products': { 'fr': 'Produits', 'ar': 'المنتجات' },
+            'employees': { 'fr': 'Employés', 'ar': 'الموظفون' },
+            'settings': { 'fr': 'Paramètres', 'ar': 'الإعدادات' },
+            'search': { 'fr': 'Rechercher...', 'ar': 'بحث...' },
+            'new_invoice': { 'fr': 'Nouvelle Facture', 'ar': 'فاتورة جديدة' },
+            'new_client': { 'fr': 'Nouveau Client', 'ar': 'عميل جديد' },
+            'new_product': { 'fr': 'Nouveau Produit', 'ar': 'منتج جديد' },
+            'new_employee': { 'fr': 'Nouvel Employé', 'ar': 'موظف جديد' },
+            'save': { 'fr': 'Enregistrer', 'ar': 'حفظ' },
+            'update': { 'fr': 'Mettre à jour', 'ar': 'تحديث' },
+            'cancel': { 'fr': 'Annuler', 'ar': 'إلغاء' },
+            'delete': { 'fr': 'Supprimer', 'ar': 'حذف' },
+            'confirm': { 'fr': 'Confirmer', 'ar': 'تأكيد' },
+            'edit': { 'fr': 'Modifier', 'ar': 'تعديل' },
+            'edit_invoice': { 'fr': 'Modifier la facture', 'ar': 'تعديل الفاتورة' },
+            'edit_client': { 'fr': 'Modifier le client', 'ar': 'تعديل العميل' },
+            'edit_product': { 'fr': 'Modifier le produit', 'ar': 'تعديل المنتج' },
+            'edit_employee': { 'fr': 'Modifier l\'employé', 'ar': 'تعديل الموظف' },
+            'invoice_updated': { 'fr': 'Facture mise à jour avec succès !', 'ar': 'تم تحديث الفاتورة بنجاح!' },
+            'invoice_created': { 'fr': 'Facture créée avec succès !', 'ar': 'تم إنشاء الفاتورة بنجاح!' },
+            'invoice_deleted': { 'fr': 'Facture supprimée avec succès.', 'ar': 'تم حذف الفاتورة بنجاح.'},
+            'invoice_error': { 'fr': 'Erreur lors de la gestion de la facture.', 'ar': 'حدث خطأ أثناء إدارة الفاتورة.' },
+            'invoice_validation_error': { 'fr': 'Veuillez sélectionner un client et ajouter au moins un article.', 'ar': 'يرجى تحديد عميل وإضافة عنصر واحد على الأقل.' },
+            'cannot_remove_last_item': { 'fr': 'Impossible de supprimer le dernier article.', 'ar': 'لا يمكن إزالة العنصر الأخير.' },
+            'actions': { 'fr': 'Actions', 'ar': 'إجراءات' },
+            'status': { 'fr': 'Statut', 'ar': 'الحالة' },
+            'paid': { 'fr': 'Payée', 'ar': 'مدفوعة' },
+            'pending': { 'fr': 'En attente', 'ar': 'في الانتظار' },
+            'total': { 'fr': 'Total', 'ar': 'المجموع' },
+            'total_ht': { 'fr': 'Total HT', 'ar': 'المجموع بدون ضريبة' },
+            'vat': { 'fr': 'TVA', 'ar': 'الضريبة' },
+            'total_ttc': { 'fr': 'Total TTC', 'ar': 'المجموع مع الضريبة' },
             
             // Tableau de bord
-            'revenue': {
-                'fr': 'Chiffre d\'affaires',
-                'ar': 'الإيرادات'
-            },
-            'pending_invoices': {
-                'fr': 'Factures en attente',
-                'ar': 'الفواتير في الانتظار'
-            },
-            'active_clients': {
-                'fr': 'Clients actifs',
-                'ar': 'العملاء النشطون'
-            },
-            'recent_invoices': {
-                'fr': 'Factures récentes',
-                'ar': 'الفواتير الأخيرة'
-            },
+            'revenue': { 'fr': 'Chiffre d\'affaires', 'ar': 'الإيرادات' },
+            'pending_invoices': { 'fr': 'Factures en attente', 'ar': 'الفواتير في الانتظار' },
+            'active_clients': { 'fr': 'Clients actifs', 'ar': 'العملاء النشطون' },
+            'recent_invoices': { 'fr': 'Factures récentes', 'ar': 'الفواتير الأخيرة' },
             
             // Factures
-            'invoice_number': {
-                'fr': 'N° Facture',
-                'ar': 'رقم الفاتورة'
-            },
-            'client': {
-                'fr': 'Client',
-                'ar': 'العميل'
-            },
-            'date': {
-                'fr': 'Date',
-                'ar': 'التاريخ'
-            },
-            'amount': {
-                'fr': 'Montant',
-                'ar': 'المبلغ'
-            },
-            'view_invoice': {
-                'fr': 'Voir la facture',
-                'ar': 'عرض الفاتورة'
-            },
-            'download_invoice': {
-                'fr': 'Télécharger la facture',
-                'ar': 'تحميل الفاتورة'
-            },
-            'delete_invoice': {
-                'fr': 'Supprimer la facture',
-                'ar': 'حذف الفاتورة'
-            },
-            'select_client': {
-                'fr': 'Sélectionner un client',
-                'ar': 'اختر عميلاً'
-            },
-            'select_product': {
-                'fr': 'Sélectionner un produit',
-                'ar': 'اختر منتجاً'
-            },
-            'add_item': {
-                'fr': 'Ajouter un article',
-                'ar': 'إضافة عنصر'
-            },
-            'quantity': {
-                'fr': 'Quantité',
-                'ar': 'الكمية'
-            },
-            'description': {
-                'fr': 'Description',
-                'ar': 'الوصف'
-            },
-            'unit_price': {
-                'fr': 'Prix unitaire',
-                'ar': 'سعر الوحدة'
-            },
+            'invoice_number': { 'fr': 'N° Facture', 'ar': 'رقم الفاتورة' },
+            'client': { 'fr': 'Client', 'ar': 'العميل' },
+            'date': { 'fr': 'Date', 'ar': 'التاريخ' },
+            'amount': { 'fr': 'Montant', 'ar': 'المبلغ' },
+            'view_invoice': { 'fr': 'Voir la facture', 'ar': 'عرض الفاتورة' },
+            'download_invoice': { 'fr': 'Télécharger la facture', 'ar': 'تحميل الفاتورة' },
+            'delete_invoice': { 'fr': 'Supprimer la facture', 'ar': 'حذف الفاتورة' },
+            'delete_invoice_confirm': { 'fr': 'Êtes-vous sûr de vouloir supprimer cette facture ?', 'ar': 'هل أنت متأكد أنك تريد حذف هذه الفاتورة؟' },
+            'select_client': { 'fr': 'Sélectionner un client', 'ar': 'اختر عميلاً' },
+            'select_product': { 'fr': 'Sélectionner un produit', 'ar': 'اختر منتجاً' },
+            'add_item': { 'fr': 'Ajouter un article', 'ar': 'إضافة عنصر' },
+            'quantity': { 'fr': 'Quantité', 'ar': 'الكمية' },
+            'description': { 'fr': 'Description', 'ar': 'الوصف' },
+            'unit_price': { 'fr': 'Prix unitaire', 'ar': 'سعر الوحدة' },
             
             // Clients
-            'name': {
-                'fr': 'Nom',
-                'ar': 'الاسم'
-            },
-            'email': {
-                'fr': 'Email',
-                'ar': 'البريد الإلكتروني'
-            },
-            'phone': {
-                'fr': 'Téléphone',
-                'ar': 'الهاتف'
-            },
-            'address': {
-                'fr': 'Adresse',
-                'ar': 'العنوان'
-            },
-            'delete_client_confirm': {
-                'fr': 'Êtes-vous sûr de vouloir supprimer ce client ?',
-                'ar': 'هل أنت متأكد من أنك تريد حذف هذا العميل؟'
-            },
-            
+            'name': { 'fr': 'Nom', 'ar': 'الاسم' },
+            'email': { 'fr': 'Email', 'ar': 'البريد الإلكتروني' },
+            'phone': { 'fr': 'Téléphone', 'ar': 'الهاتف' },
+            'address': { 'fr': 'Adresse', 'ar': 'العنوان' },
+            'delete_client_confirm': { 'fr': 'Êtes-vous sûr de vouloir supprimer ce client ?', 'ar': 'هل أنت متأكد من أنك تريد حذف هذا العميل؟' },
+            'client_deleted': { 'fr': 'Client supprimé avec succès.', 'ar': 'تم حذف العميل بنجاح.'},
+            'client_added': { 'fr': 'Client ajouté avec succès.', 'ar': 'تمت إضافة العميل بنجاح.' },
+            'client_updated': { 'fr': 'Client mis à jour avec succès.', 'ar': 'تم تحديث العميل بنجاح.' },
+            'client_name_required': { 'fr': 'Le nom du client est obligatoire.', 'ar': 'اسم العميل مطلوب.' },
+
+
             // Produits
-            'price': {
-                'fr': 'Prix',
-                'ar': 'السعر'
-            },
-            'delete_product_confirm': {
-                'fr': 'Êtes-vous sûr de vouloir supprimer ce produit ?',
-                'ar': 'هل أنت متأكد من أنك تريد حذف هذا المنتج؟'
-            },
-            'stock': {
-                'fr': 'Stock',
-                'ar': 'المخزون'
-            },
-            'manage_stock': {
-                'fr': 'Gérer le stock',
-                'ar': 'إدارة المخزون'
-            },
-            'product_name': {
-                'fr': 'Nom du produit',
-                'ar': 'اسم المنتج'
-            },
-            'current_stock': {
-                'fr': 'Stock actuel',
-                'ar': 'المخزون الحالي'
-            },
-            'quantity': {
-                'fr': 'Quantité',
-                'ar': 'الكمية'
-            },
-            'stock_quantity_help': {
-                'fr': 'Entrez une valeur positive pour augmenter le stock ou négative pour le diminuer.',
-                'ar': 'أدخل قيمة إيجابية لزيادة المخزون أو سالبة لتقليله.'
-            },
-            'update_stock': {
-                'fr': 'Mettre à jour le stock',
-                'ar': 'تحديث المخزون'
-            },
-            
+            'price': { 'fr': 'Prix', 'ar': 'السعر' },
+            'delete_product_confirm': { 'fr': 'Êtes-vous sûr de vouloir supprimer ce produit ?', 'ar': 'هل أنت متأكد من أنك تريد حذف هذا المنتج؟' },
+            'product_deleted': { 'fr': 'Produit supprimé avec succès.', 'ar': 'تم حذف المنتج بنجاح.'},
+            'product_added': { 'fr': 'Produit ajouté avec succès.', 'ar': 'تمت إضافة المنتج بنجاح.' },
+            'product_updated': { 'fr': 'Produit mis à jour avec succès.', 'ar': 'تم تحديث المنتج بنجاح.' },
+            'product_name_required': { 'fr': 'Le nom du produit est obligatoire.', 'ar': 'اسم المنتج مطلوب.' },
+            'stock': { 'fr': 'Stock', 'ar': 'المخزون' },
+            'manage_stock': { 'fr': 'Gérer le stock', 'ar': 'إدارة المخزون' },
+            'product_name': { 'fr': 'Nom du produit', 'ar': 'اسم المنتج' },
+            'current_stock': { 'fr': 'Stock actuel', 'ar': 'المخزون الحالي' },
+            'stock_quantity_help': { 'fr': 'Entrez une valeur positive pour augmenter le stock ou négative pour le diminuer.', 'ar': 'أدخل قيمة إيجابية لزيادة المخزون أو سالبة لتقليله.' },
+            'update_stock': { 'fr': 'Mettre à jour le stock', 'ar': 'تحديث المخزون' },
+            'stock_updated': { 'fr': 'Stock mis à jour avec succès.', 'ar': 'تم تحديث المخزون بنجاح.' },
+            'insufficient_stock': { 'fr': 'Stock insuffisant pour le produit :', 'ar': 'المخزون غير كافٍ للمنتج:' },
+
+            // Employés
+            'position': { 'fr': 'Poste', 'ar': 'المنصب' },
+            'hire_date': { 'fr': 'Date d\'embauche', 'ar': 'تاريخ التوظيف' },
+            'salary': { 'fr': 'Salaire', 'ar': 'الراتب' },
+            'employee_deleted': { 'fr': 'Employé supprimé avec succès.', 'ar': 'تم حذف الموظف بنجاح.'},
+            'employee_added': { 'fr': 'Employé ajouté avec succès.', 'ar': 'تمت إضافة الموظف بنجاح.' },
+            'employee_updated': { 'fr': 'Employé mis à jour avec succès.', 'ar': 'تم تحديث الموظف بنجاح.' },
+            'employee_name_required': { 'fr': 'Le nom de l\'employé est obligatoire.', 'ar': 'اسم الموظف مطلوب.' },
+            'delete_employee_confirm': { 'fr': 'Êtes-vous sûr de vouloir supprimer cet employé ?', 'ar': 'هل أنت متأكد من أنك تريد حذف هذا الموظف؟' },
+            'generate_payslip': { 'fr': 'Générer fiche de paie', 'ar': 'إنشاء قسيمة راتب' },
+            'generate_work_certificate': { 'fr': 'Attestation de travail', 'ar': 'شهادة عمل' },
+            'generate_leave_certificate': { 'fr': 'Titre de congé', 'ar': 'شهادة إجازة' },
+            'nss': { 'fr': 'N° SS', 'ar': 'رقم الضمان الاجتماعي' },
+
             // Paramètres
-            'company_settings': {
-                'fr': 'Paramètres de l\'entreprise',
-                'ar': 'إعدادات الشركة'
-            },
-            'main_info': {
-                'fr': 'Informations principales',
-                'ar': 'المعلومات الأساسية'
-            },
-            'company_name': {
-                'fr': 'Nom de l\'entreprise',
-                'ar': 'اسم الشركة'
-            },
-            'additional_info': {
-                'fr': 'Informations complémentaires',
-                'ar': 'معلومات إضافية'
-            },
-            'rc_number': {
-                'fr': 'RC N°',
-                'ar': 'رقم السجل التجاري'
-            },
-            'nif': {
-                'fr': 'NIF',
-                'ar': 'رقم التعريف الضريبي'
-            },
-            'billing_settings': {
-                'fr': 'Paramètres de facturation',
-                'ar': 'إعدادات الفوترة'
-            },
-            'currency': {
-                'fr': 'Devise',
-                'ar': 'العملة'
-            },
-            'language': {
-                'fr': 'Langue',
-                'ar': 'اللغة'
-            },
-            'save_settings': {
-                'fr': 'Enregistrer les modifications',
-                'ar': 'حفظ التغييرات'
-            },
-            'settings_saved': {
-                'fr': 'Paramètres sauvegardés avec succès !',
-                'ar': 'تم حفظ الإعدادات بنجاح!'
-            },
-            'language_changed': {
-                'fr': 'La langue a été modifiée. La page va être rechargée pour appliquer les changements.',
-                'ar': 'تم تغيير اللغة. سيتم إعادة تحميل الصفحة لتطبيق التغييرات.'
-            },
+            'company_settings': { 'fr': 'Paramètres de l\'entreprise', 'ar': 'إعدادات الشركة' },
+            'main_info': { 'fr': 'Informations principales', 'ar': 'المعلومات الأساسية' },
+            'company_name': { 'fr': 'Nom de l\'entreprise', 'ar': 'اسم الشركة' },
+            'additional_info': { 'fr': 'Informations complémentaires', 'ar': 'معلومات إضافية' },
+            'rc_number': { 'fr': 'RC N°', 'ar': 'رقم السجل التجاري' },
+            'nif': { 'fr': 'NIF', 'ar': 'رقم التعريف الضريبي' },
+            'adherent_number': { 'fr': 'N° Adhérent', 'ar': 'رقم العضوية' },
+            'billing_settings': { 'fr': 'Paramètres de facturation', 'ar': 'إعدادات الفوترة' },
+            'currency': { 'fr': 'Devise', 'ar': 'العملة' },
+            'language': { 'fr': 'Langue', 'ar': 'اللغة' },
+            'save_settings': { 'fr': 'Enregistrer les modifications', 'ar': 'حفظ التغييرات' },
+            'settings_saved': { 'fr': 'Paramètres sauvegardés avec succès !', 'ar': 'تم حفظ الإعدادات بنجاح!' },
+            'language_changed': { 'fr': 'La langue a été modifiée. La page va être rechargée pour appliquer les changements.', 'ar': 'تم تغيير اللغة. سيتم إعادة تحميل الصفحة لتطبيق التغييرات.' },
+            'data_management': { 'fr': 'Gestion des données', 'ar': 'إدارة البيانات' },
+            'export_data': { 'fr': 'Exporter les données', 'ar': 'تصدير البيانات' },
+            'import_data': { 'fr': 'Importer les données', 'ar': 'استيراد البيانات' },
+            'import_data_help': { 'fr': 'Importez un fichier .xlsx. Attention, cela remplacera toutes les données existantes.', 'ar': 'استورد ملف .xlsx. تحذير: هذا سيستبدل جميع البيانات الحالية.' },
+            'import_confirm_title': { 'fr': 'Confirmer l\'importation', 'ar': 'تأكيد الاستيراد' },
+            'import_confirm_text': { 'fr': 'Êtes-vous sûr ? Toutes les données actuelles seront écrasées.', 'ar': 'هل أنت متأكد؟ سيتم الكتابة فوق جميع البيانات الحالية.' },
+            'import_success': { 'fr': 'Données importées ! Rechargement...', 'ar': 'تم استيراد البيانات! إعادة التحميل...' },
+            'import_error': { 'fr': 'Erreur d\'import. Vérifiez le format du fichier.', 'ar': 'خطأ في الاستيراد. تحقق من تنسيق الملف.' },
+            'export_success': { 'fr': 'Données exportées avec succès !', 'ar': 'تم تصدير البيانات بنجاح!' },
             
             // Facture PDF
-            'invoice': {
-                'fr': 'FACTURE',
-                'ar': 'فاتورة'
-            },
-            'billed_to': {
-                'fr': 'Facturé à:',
-                'ar': 'فاتورة إلى:'
-            },
-            'unknown_client': {
-                'fr': 'Client inconnu',
-                'ar': 'عميل غير معروف'
-            },
-            'thank_you': {
-                'fr': 'Merci de votre confiance !',
-                'ar': 'شكرا لثقتكم!'
-            },
-            'contact_us': {
-                'fr': 'Pour toute question concernant cette facture, veuillez nous contacter.',
-                'ar': 'لأي استفسار بخصوص هذه الفاتورة، يرجى الاتصال بنا.'
-            },
-            'invoice_items': {
-                'fr': 'Articles de la facture',
-                'ar': 'منتجات الفاتورة'
-            },
-            'delete_invoice': {
-                'fr': 'Supprimer la facture',
-                'ar': 'حذف الفاتورة'
-            },
-            'edit_invoice': {
-                'fr': 'Modifier la facture',
-                'ar': 'تعديل الفاتورة'
-            },
-            'new_invoice': {
-                'fr': 'Nouvelle Facture',
-                'ar': 'فاتورة جديدة'
-            },
+            'invoice': { 'fr': 'FACTURE', 'ar': 'فاتورة' },
+            'billed_to': { 'fr': 'Facturé à:', 'ar': 'فاتورة إلى:' },
+            'unknown_client': { 'fr': 'Client inconnu', 'ar': 'عميل غير معروف' },
+            'thank_you': { 'fr': 'Merci de votre confiance !', 'ar': 'شكرا لثقتكم!' },
+            'contact_us': { 'fr': 'Pour toute question concernant cette facture, veuillez nous contacter.', 'ar': 'لأي استفسار بخصوص هذه الفاتورة، يرجى الاتصال بنا.' },
+            'invoice_items': { 'fr': 'Articles de la facture', 'ar': 'منتجات الفاتورة' },
+            
+            // Fiche de Paie
+            'payslip': { 'fr': 'BULLETIN DE PAIE', 'ar': 'قسيمة الراتب' },
+            'payslip_for_month': { 'fr': 'Fiche de paie pour', 'ar': 'قسيمة راتب لشهر' },
+            'matricule': { 'fr': 'Matricule', 'ar': 'الرقم التعريفي' },
+            'family_situation': { 'fr': 'Sit. Familiale', 'ar': 'الحالة العائلية' },
+            'affectation': { 'fr': 'Affectation', 'ar': 'التعيين' },
+            'code': { 'fr': 'Code', 'ar': 'الرمز' },
+            'label': { 'fr': 'Libellé', 'ar': 'البيان' },
+            'base': { 'fr': 'Base', 'ar': 'الأساس' },
+            'rate': { 'fr': 'Taux', 'ar': 'النسبة' },
+            'gain': { 'fr': 'Gain', 'ar': 'الكسب' },
+            'deduction': { 'fr': 'Retenue', 'ar': 'الخصم' },
+            'net_to_pay': { 'fr': 'NET A PAYER', 'ar': 'صافي الدفع' },
         };
     }
     
     static translate(key) {
         const settings = Storage.getSettings();
         const lang = settings.language || 'fr';
-        
-        // Si la clé existe dans les traductions
-        if (this.translations[key]) {
-            // Si la traduction existe pour cette langue
-            if (this.translations[key][lang]) {
-                return this.translations[key][lang];
-            }
-            // Sinon, retourne la traduction française (langue par défaut)
-            return this.translations[key]['fr'];
+        if (this.translations[key] && this.translations[key][lang]) {
+            return this.translations[key][lang];
         }
-        
-        // Si la clé n'existe pas, retourne la clé elle-même
-        return key;
+        return (this.translations[key] && this.translations[key]['fr']) || key;
     }
     
-    // Abréviation de la méthode translate pour un code plus concis
-    static t(key) {
-        return this.translate(key);
-    }
-    
-    // Obtenir la direction du texte en fonction de la langue
-    static getTextDirection() {
-        const settings = Storage.getSettings();
-        return settings.language === 'ar' ? 'rtl' : 'ltr';
-    }
+    static t(key) { return this.translate(key); }
+    static getTextDirection() { return Storage.getSettings().language === 'ar' ? 'rtl' : 'ltr'; }
 }
 
 // Gestion des clients
@@ -420,30 +222,8 @@ class Client {
         this.phone = phone;
     }
 
-    static add(client) {
-        const clients = Storage.getClients();
-        clients.push(client);
-        Storage.setClients(clients);
-    }
-
-    static getAll() {
-        return Storage.getClients();
-    }
-
-    static getById(clientId) {
-        return this.getAll().find(c => c.id === clientId);
-    }
-
-    save() {
-        const clients = Client.getAll();
-        const index = clients.findIndex(c => c.id === this.id);
-        if (index !== -1) {
-            clients[index] = this;
-        } else {
-            Client.add(this);
-        }
-        Storage.setClients(clients);
-    }
+    static getAll() { return Storage.getClients(); }
+    static getById(clientId) { return this.getAll().find(c => c.id === clientId); }
 }
 
 // Gestion des produits
@@ -456,37 +236,14 @@ class Product {
         this.stock = stock;
     }
 
-    static add(product) {
-        const products = Storage.getProducts();
-        products.push(product);
-        Storage.setProducts(products);
-    }
-
-    static getAll() {
-        return Storage.getProducts();
-    }
-
-    static getById(productId) {
-        return this.getAll().find(p => p.id === productId);
-    }
-
-    save() {
-        const products = Product.getAll();
-        const index = products.findIndex(p => p.id === this.id);
-        if (index !== -1) {
-            products[index] = this;
-        } else {
-            Product.add(this);
-        }
-        Storage.setProducts(products);
-    }
+    static getAll() { return Storage.getProducts(); }
+    static getById(productId) { return this.getAll().find(p => p.id === productId); }
     
-    // Méthodes pour gérer le stock
     static updateStock(productId, quantity) {
         const products = this.getAll();
         const index = products.findIndex(p => p.id === productId);
         if (index !== -1) {
-            products[index].stock = Math.max(0, products[index].stock + quantity);
+            products[index].stock = (products[index].stock || 0) + quantity;
             Storage.setProducts(products);
             return true;
         }
@@ -494,144 +251,237 @@ class Product {
     }
 }
 
+// Gestion des employés
+class Employee {
+    constructor(name, position, hireDate, salary, nss = '', familySit = 'C') {
+        this.id = Date.now().toString();
+        this.name = name;
+        this.position = position;
+        this.hireDate = hireDate;
+        this.salary = salary;
+        this.nss = nss; // Numéro de sécurité sociale
+        this.familySit = familySit; // Situation familiale
+    }
+
+    static getAll() { return Storage.getEmployees(); }
+    
+    static getById(employeeId) {
+        const employeeData = this.getAll().find(e => e.id === employeeId);
+        if (!employeeData) return null;
+
+        // Reconstitute the object to have access to instance methods
+        const employee = new Employee(
+            employeeData.name,
+            employeeData.position,
+            employeeData.hireDate,
+            employeeData.salary,
+            employeeData.nss,
+            employeeData.familySit
+        );
+        // Important: copy over all properties, especially the original ID
+        Object.assign(employee, employeeData);
+        
+        return employee;
+    }
+
+    generatePayslipHTML(period) {
+        const payslip = new Payslip(this, period);
+        const settings = Storage.getSettings();
+
+        const format = (amount) => Invoice.formatAmount(amount, settings.currency);
+
+        return `
+            <!DOCTYPE html>
+            <html lang="${settings.language}">
+            <head>
+                <meta charset="UTF-8">
+                <title>${Translator.t('payslip')} - ${this.name} - ${period}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f9f9f9; color: #333; }
+                    .payslip-container { background-color: #fff; max-width: 800px; margin: auto; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+                    .header { text-align: center; margin-bottom: 20px; }
+                    .header h1 { font-size: 24px; color: #1a237e; margin: 0; }
+                    .header p { margin: 5px 0; font-size: 14px; }
+                    .payslip-title { background-color: #3949ab; color: white; padding: 10px 20px; margin: 20px -40px; display: flex; justify-content: space-between; align-items: center; }
+                    .payslip-title h2 { margin: 0; font-size: 18px; text-transform: uppercase; }
+                    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px 20px; margin-bottom: 25px; font-size: 14px; }
+                    .info-item { display: flex; }
+                    .info-label { font-weight: 600; color: #555; width: 120px; }
+                    .info-value { border-bottom: 1px solid #eee; padding-bottom: 3px; flex-grow: 1; }
+                    .payslip-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+                    .payslip-table th, .payslip-table td { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; }
+                    .payslip-table thead { background-color: #f5f5f5; }
+                    .payslip-table th { font-weight: 600; text-align: left; }
+                    .payslip-table .align-right { text-align: right; }
+                    .payslip-table .code-col { width: 8%; }
+                    .payslip-table .label-col { width: 42%; }
+                    .totals-section { margin-top: 20px; margin-left: auto; width: 40%; }
+                    .total-line { display: flex; justify-content: space-between; padding: 8px 15px; font-weight: 600; }
+                    .total-line.grand-total { background-color: #3949ab; color: white; border-radius: 4px; margin-top: 10px; padding: 12px 15px; font-size: 16px; }
+                    @media print {
+                        body { background-color: #fff; padding: 0; }
+                        .payslip-container { box-shadow: none; border: 1px solid #ccc; margin: 0; max-width: 100%; border-radius: 0; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="payslip-container">
+                    <div class="header">
+                        <h1>${settings.name || 'Nom de l\'entreprise'}</h1>
+                        <p>${settings.address || 'Adresse de l\'entreprise'}</p>
+                        <p>${Translator.t('adherent_number')}: ${settings.adherent || 'N/A'}</p>
+                    </div>
+
+                    <div class="payslip-title">
+                        <h2>${Translator.t('payslip')}</h2>
+                        <span>${period}</span>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item"><span class="info-label">${Translator.t('matricule')}:</span><span class="info-value">${this.id.slice(-5)}</span></div>
+                        <div class="info-item"><span class="info-label">${Translator.t('name')}:</span><span class="info-value">${this.name}</span></div>
+                        <div class="info-item"><span class="info-label">${Translator.t('position')}:</span><span class="info-value">${this.position}</span></div>
+                        <div class="info-item"><span class="info-label">${Translator.t('family_situation')}:</span><span class="info-value">${this.familySit}</span></div>
+                        <div class="info-item"><span class="info-label">${Translator.t('affectation')}:</span><span class="info-value">SIEGE SOCIAL</span></div>
+                        <div class="info-item"><span class="info-label">${Translator.t('hire_date')}:</span><span class="info-value">${new Date(this.hireDate).toLocaleDateString()}</span></div>
+                        <div class="info-item"><span class="info-label">${Translator.t('nss')}:</span><span class="info-value">${this.nss}</span></div>
+                    </div>
+
+                    <table class="payslip-table">
+                        <thead>
+                            <tr>
+                                <th class="code-col">${Translator.t('code')}</th>
+                                <th class="label-col">${Translator.t('label')}</th>
+                                <th class="align-right">${Translator.t('base')}</th>
+                                <th class="align-right">${Translator.t('rate')} (%)</th>
+                                <th class="align-right">${Translator.t('gain')}</th>
+                                <th class="align-right">${Translator.t('deduction')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${payslip.lines.map(line => `
+                                <tr>
+                                    <td>${line.code}</td>
+                                    <td>${line.label}</td>
+                                    <td class="align-right">${line.base ? format(line.base) : ''}</td>
+                                    <td class="align-right">${line.rate ? line.rate.toFixed(2) : ''}</td>
+                                    <td class="align-right">${line.gain ? format(line.gain) : ''}</td>
+                                    <td class="align-right">${line.deduction ? format(line.deduction) : ''}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <div class="totals-section">
+                        <div class="total-line">
+                            <span>Total ${Translator.t('gain')}:</span>
+                            <span>${format(payslip.total_gain)}</span>
+                        </div>
+                        <div class="total-line">
+                            <span>Total ${Translator.t('deduction')}:</span>
+                            <span>${format(payslip.total_deductions)}</span>
+                        </div>
+                        <div class="total-line grand-total">
+                            <span>${Translator.t('net_to_pay')}:</span>
+                            <span>${format(payslip.net_to_pay)}</span>
+                        </div>
+                    </div>
+
+                </div>
+            </body>
+            </html>
+        `;
+    }
+}
+
+
 // Gestion des factures
 class Invoice {
-    constructor(clientId, items, date = new Date()) {
-        this.id = Invoice.generateInvoiceNumber();
+    constructor(clientId, items, date = new Date(), id = null) {
+        this.id = id || Invoice.generateInvoiceNumber();
         this.clientId = clientId;
         this.items = items;
         this.date = date;
         this.status = 'pending';
         this.tvaRate = 0.19; // Taux de TVA à 19%
+        this.updateTotals();
+        this.currency = Storage.getSettings().currency;
+    }
+    
+    updateTotals() {
         this.totalHT = this.calculateTotalHT();
         this.tva = this.calculateTVA();
         this.totalTTC = this.calculateTotalTTC();
-        this.currency = Storage.getSettings().currency;
     }
 
     static generateInvoiceNumber() {
         const currentYear = new Date().getFullYear();
         const invoices = Storage.getInvoices();
-        
-        // Filtrer les factures de l'année en cours
-        const currentYearInvoices = invoices.filter(inv => {
-            const invoiceYear = inv.id.split('/')[1];
-            return invoiceYear === currentYear.toString();
-        });
-
-        // Trouver le dernier numéro utilisé pour l'année en cours
+        const currentYearInvoices = invoices.filter(inv => inv.id.split('/')[1] === currentYear.toString());
         let lastNumber = 0;
         if (currentYearInvoices.length > 0) {
-            lastNumber = Math.max(...currentYearInvoices.map(inv => {
-                const num = parseInt(inv.id.split('/')[0]);
-                return isNaN(num) ? 0 : num;
-            }));
+            lastNumber = Math.max(...currentYearInvoices.map(inv => parseInt(inv.id.split('/')[0]) || 0));
         }
-
-        // Générer le nouveau numéro
-        const nextNumber = (lastNumber + 1).toString().padStart(4, '0');
-        return `${nextNumber}/${currentYear}`;
+        return `${(lastNumber + 1).toString().padStart(4, '0')}/${currentYear}`;
     }
 
-    calculateTotalHT() {
-        return this.items.reduce((total, item) => total + (item.quantity * item.price), 0);
-    }
-
-    calculateTVA() {
-        return this.calculateTotalHT() * this.tvaRate;
-    }
-
-    calculateTotalTTC() {
-        return this.calculateTotalHT() + this.calculateTVA();
-    }
+    calculateTotalHT() { return this.items.reduce((total, item) => total + (item.quantity * item.price), 0); }
+    calculateTVA() { return this.calculateTotalHT() * this.tvaRate; }
+    calculateTotalTTC() { return this.calculateTotalHT() + this.calculateTVA(); }
 
     static formatAmount(amount, currency = Storage.getSettings().currency) {
-        // S'assurer que amount est un nombre valide
         const validAmount = Number(amount) || 0;
-        const settings = Storage.getSettings();
-        const isArabic = settings.language === 'ar';
-        
-        // Adapter la devise pour l'arabe
-        let displayCurrency = currency;
-        if (isArabic) {
-            if (currency === 'DZD') displayCurrency = 'دج';
-            else if (currency === 'EUR') displayCurrency = '€';
-            // Autres devises si nécessaire
-        }
-        
-        // En arabe, la devise est placée après le montant, en français avant
-        if (isArabic) {
-            return `${validAmount.toFixed(2)} ${displayCurrency}`;
-        } else {
-            return `${validAmount.toFixed(2)} ${displayCurrency}`;
-        }
+        return `${validAmount.toFixed(2)} ${currency}`;
     }
 
     static add(invoice) {
         const invoices = Storage.getInvoices();
         invoices.push(invoice);
         Storage.setInvoices(invoices);
-        
-        // Mettre à jour l'interface uniquement si nous sommes sur la page appropriée
-        const invoicesList = document.getElementById('invoices-list');
-        if (invoicesList) {
-            UI.updateInvoicesList();
-        }
-        
-        // Mettre à jour les statistiques uniquement si nous sommes sur le tableau de bord
-        const statsContainer = document.querySelector('.stats-container');
-        if (statsContainer) {
-            this.updateDashboardStats();
-        }
     }
 
-    static getAll() {
-        return Storage.getInvoices();
-    }
-
+    static getAll() { return Storage.getInvoices(); }
+    
     static updateDashboardStats() {
+        const dashboardView = document.querySelector('.dashboard');
+        if (!dashboardView) return;
+
         const invoices = this.getAll();
-        const currency = Storage.getSettings().currency;
-        const totalRevenue = invoices
-            .filter(inv => inv.status === 'paid')
-            .reduce((total, inv) => total + inv.totalTTC, 0);
+        const totalRevenue = invoices.filter(inv => inv.status === 'paid').reduce((total, inv) => total + inv.totalTTC, 0);
         const pendingInvoices = invoices.filter(inv => inv.status === 'pending').length;
         const activeClients = new Set(invoices.map(inv => inv.clientId)).size;
 
-        // Vérifier si les éléments existent avant de les mettre à jour
-        const amountElements = document.querySelectorAll('.stats-container .amount');
-        if (amountElements.length >= 3) {
-            amountElements[0].textContent = this.formatAmount(totalRevenue);
-            amountElements[1].textContent = pendingInvoices;
-            amountElements[2].textContent = activeClients;
-        }
+        dashboardView.querySelector('.stat-card:nth-child(1) .amount').textContent = this.formatAmount(totalRevenue);
+        dashboardView.querySelector('.stat-card:nth-child(2) .amount').textContent = pendingInvoices;
+        dashboardView.querySelector('.stat-card:nth-child(3) .amount').textContent = activeClients;
     }
 
     static delete(invoiceId) {
-        const invoices = this.getAll();
-        const index = invoices.findIndex(inv => inv.id === invoiceId);
-        if (index !== -1) {
-            invoices.splice(index, 1);
-            Storage.setInvoices(invoices);
-            return true;
+        let invoices = this.getAll();
+        const invoiceToDelete = invoices.find(inv => inv.id === invoiceId);
+        if (invoiceToDelete) {
+            // Restore stock
+            invoiceToDelete.items.forEach(item => {
+                Product.updateStock(item.productId, item.quantity); // Add back the quantity
+            });
         }
-        return false;
+        invoices = invoices.filter(inv => inv.id !== invoiceId);
+        Storage.setInvoices(invoices);
+        return true;
     }
 
     static getById(invoiceId) {
         const invoiceData = this.getAll().find(inv => inv.id === invoiceId);
         if (!invoiceData) return null;
-        
-        // Créer une instance complète de Invoice avec les données récupérées
-        const invoice = new Invoice(invoiceData.clientId, invoiceData.items, invoiceData.date);
-        // Copier toutes les propriétés
+        // Reconstitute the object to have access to instance methods
+        const invoice = new Invoice(invoiceData.clientId, invoiceData.items, invoiceData.date, invoiceData.id);
         Object.assign(invoice, invoiceData);
-        
+        invoice.updateTotals();
         return invoice;
     }
 
     generateHTML() {
-        const client = Client.getAll().find(c => c.id === this.clientId);
+        const client = Client.getById(this.clientId);
         const settings = Storage.getSettings();
         const rtl = settings.language === 'ar';
         
@@ -991,1074 +841,858 @@ class Invoice {
                     </div>
                 </div>
             </body>
-            </html>
-        `;
+            </html>`;
     }
     
-    // Nouvelle méthode save pour mettre à jour une facture existante
     save() {
         const invoices = Invoice.getAll();
         const index = invoices.findIndex(inv => inv.id === this.id);
-        
+        this.updateTotals();
         if (index !== -1) {
-            // Mettre à jour les calculs avant la sauvegarde
-            this.totalHT = this.calculateTotalHT();
-            this.tva = this.calculateTVA();
-            this.totalTTC = this.calculateTotalTTC();
-            
-            // Mettre à jour la facture existante
             invoices[index] = this;
         } else {
-            // Ajouter la nouvelle facture
-            Invoice.add(this);
-            return;
+            invoices.push(this);
         }
-        
         Storage.setInvoices(invoices);
     }
 }
 
+
+// Moteur de calcul de la paie algérienne
+class Payslip {
+    constructor(employee, period) {
+        this.employee = employee;
+        this.period = period;
+        this.lines = [];
+        this.calculate();
+    }
+
+    // Fonction de calcul de l'IRG selon le barème algérien
+    calculateIRG(taxableIncome) {
+        if (taxableIncome <= 30000) return 0;
+
+        let tax = 0;
+        const annualIncome = taxableIncome * 12;
+
+        if (annualIncome <= 360000) {
+            // No tax up to 30,000 DZD per month
+            tax = 0;
+        } else if (annualIncome > 360000 && annualIncome <= 480000) {
+            tax = (annualIncome - 360000) * 0.23;
+        } else if (annualIncome > 480000 && annualIncome <= 720000) {
+            tax = 27600 + (annualIncome - 480000) * 0.27;
+        } else if (annualIncome > 720000 && annualIncome <= 1440000) {
+            tax = 92400 + (annualIncome - 720000) * 0.30;
+        } else if (annualIncome > 1440000 && annualIncome <= 2880000) {
+            tax = 308400 + (annualIncome - 1440000) * 0.32;
+        } else {
+            tax = 769200 + (annualIncome - 2880000) * 0.35;
+        }
+
+        const monthlyTax = tax / 12;
+
+        // Calcul de l'abattement 40%
+        let abatement = monthlyTax * 0.40;
+        if (abatement < 1000) abatement = 1000;
+        if (abatement > 1500) abatement = 1500;
+        
+        // L'abattement ne s'applique pas si le revenu dépasse 30,000 DA
+        if (taxableIncome <= 30000) abatement = 0;
+        
+        let finalTax = monthlyTax - abatement;
+        return finalTax > 0 ? finalTax : 0;
+    }
+
+    calculate() {
+        const salary = parseFloat(this.employee.salary) || 0;
+
+        // Gains (Exemples basés sur l'image)
+        const base_salary = salary;
+        const prime_qualification = 6500.00; // Exemple
+        const prime_responsabilite = 7000.00; // Exemple
+        const indemnite_panier = 12000.00; // Exemple
+        const indemnite_transport = 9900.00; // Exemple
+
+        this.total_gain = base_salary + prime_qualification + prime_responsabilite + indemnite_panier + indemnite_transport;
+
+        // Base cotisable (soumis à la sécurité sociale)
+        const base_cotisable = base_salary + prime_qualification + prime_responsabilite;
+        const taux_ss = 9.00;
+        this.retenue_ss = base_cotisable * (taux_ss / 100);
+
+        // Base imposable (soumis à l'IRG)
+        // Les indemnités de panier et transport sont souvent non-imposables jusqu'à un certain plafond.
+        // Pour cet exemple, on les considère non-imposables.
+        const base_imposable = base_cotisable - this.retenue_ss;
+        this.retenue_irg = this.calculateIRG(base_imposable);
+        
+        this.total_deductions = this.retenue_ss + this.retenue_irg;
+        this.net_to_pay = this.total_gain - this.total_deductions;
+
+        // Construction des lignes pour l'affichage
+        this.lines = [
+            { code: 'R030', label: 'SALAIRE DE BASE', base: null, rate: null, gain: base_salary, deduction: null },
+            { code: 'R330', label: 'PRIME DE QUALIFICATION', base: null, rate: null, gain: prime_qualification, deduction: null },
+            { code: 'R340', label: 'PRIME DE RESPONSABILITE', base: null, rate: null, gain: prime_responsabilite, deduction: null },
+            { code: 'R530', label: 'INDEMNITE DE PANIER', base: null, rate: null, gain: indemnite_panier, deduction: null },
+            { code: 'R540', label: 'INDEMNITE DE TRANSPORT', base: null, rate: null, gain: indemnite_transport, deduction: null },
+            { code: 'R510', label: 'RETENUE SECU. SLE.', base: base_cotisable, rate: taux_ss, gain: null, deduction: this.retenue_ss },
+            { code: 'R660', label: 'RETENUE IRG', base: base_imposable, rate: null, gain: null, deduction: this.retenue_irg },
+        ];
+    }
+}
+
+
+// Gestion des données (Import/Export)
+class DataService {
+    static exportToXLSX() {
+        try {
+            const clients = Storage.getClients();
+            const products = Storage.getProducts();
+            const invoices = Storage.getInvoices().map(inv => ({
+                ...inv,
+                items: JSON.stringify(inv.items) // Aplatir les articles pour l'export
+            }));
+            const employees = Storage.getEmployees();
+            const settings = [Storage.getSettings()];
+
+            const wb = XLSX.utils.book_new();
+            const wsClients = XLSX.utils.json_to_sheet(clients);
+            const wsProducts = XLSX.utils.json_to_sheet(products);
+            const wsInvoices = XLSX.utils.json_to_sheet(invoices);
+            const wsEmployees = XLSX.utils.json_to_sheet(employees);
+            const wsSettings = XLSX.utils.json_to_sheet(settings);
+
+            XLSX.utils.book_append_sheet(wb, wsClients, "Clients");
+            XLSX.utils.book_append_sheet(wb, wsProducts, "Produits");
+            XLSX.utils.book_append_sheet(wb, wsInvoices, "Factures");
+            XLSX.utils.book_append_sheet(wb, wsEmployees, "Employes");
+            XLSX.utils.book_append_sheet(wb, wsSettings, "Settings");
+
+            const today = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `FacturePro_Backup_${today}.xlsx`);
+
+            UI.showToast(Translator.t('export_success'), 'success');
+        } catch (error) {
+            console.error("Export failed:", error);
+            UI.showToast('Erreur lors de l\'exportation.', 'error');
+        }
+    }
+
+    static importFromXLSX(file) {
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                const clients = XLSX.utils.sheet_to_json(workbook.Sheets['Clients'] || []);
+                const products = XLSX.utils.sheet_to_json(workbook.Sheets['Produits'] || []);
+                const employees = XLSX.utils.sheet_to_json(workbook.Sheets['Employes'] || []);
+                const invoices = XLSX.utils.sheet_to_json(workbook.Sheets['Factures'] || []).map(inv => {
+                    try {
+                        inv.items = typeof inv.items === 'string' ? JSON.parse(inv.items) : [];
+                    } catch {
+                        inv.items = [];
+                    }
+                    return inv;
+                });
+                const settingsData = XLSX.utils.sheet_to_json(workbook.Sheets['Settings'] || []);
+                
+                if (!workbook.Sheets['Clients'] || !workbook.Sheets['Produits'] || !workbook.Sheets['Factures']) {
+                    throw new Error("Invalid file format, missing sheets.");
+                }
+
+                UI.showConfirmationModal(
+                    Translator.t('import_confirm_title'),
+                    Translator.t('import_confirm_text'),
+                    () => {
+                        Storage.setClients(clients);
+                        Storage.setProducts(products);
+                        Storage.setInvoices(invoices);
+                        Storage.setEmployees(employees);
+                        if (settingsData.length > 0) {
+                            Storage.setSettings(settingsData[0]);
+                        }
+                        UI.showToast(Translator.t('import_success'), 'info');
+                        setTimeout(() => window.location.reload(), 2000);
+                    }
+                );
+
+            } catch (error) {
+                console.error("Import failed:", error);
+                UI.showToast(Translator.t('import_error'), 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+}
+
+
 // Gestion de l'interface utilisateur
 class UI {
     static init() {
-        Router.init(); // Initialisation du routeur
-        this.initModals();
-        this.initInvoiceForm();
-        
-        // Mettre à jour uniquement si nous sommes sur la bonne page
-        const invoicesList = document.getElementById('invoices-list');
-        if (invoicesList) {
-            this.updateInvoicesList();
-        }
-        
-        // Mettre à jour les statistiques uniquement si nous sommes sur le tableau de bord
-        const statsContainer = document.querySelector('.stats-container');
-        if (statsContainer) {
-            Invoice.updateDashboardStats();
-        }
-        
-        // Réinitialiser les gestionnaires d'événements globaux
+        Router.init();
         this.initGlobalEventListeners();
     }
 
-    static handleInvoiceFormOpen(invoiceId = null) {
-        const modal = document.getElementById('invoice-modal');
+    static initGlobalEventListeners() {
+        document.body.addEventListener('click', e => {
+            if (!e.target.closest('.searchable-select-container')) {
+                document.querySelectorAll('.select-dropdown.active').forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            }
+            if (e.target.classList.contains('modal') || e.target.classList.contains('close-modal')) {
+                const modal = e.target.closest('.modal');
+                if (modal) modal.classList.remove('active');
+            }
+        });
+    }
+    
+    static showToast(message, type = 'info', duration = 4000) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const iconMap = {
+            success: 'fa-check-circle',
+            error: 'fa-times-circle',
+            warning: 'fa-exclamation-triangle',
+            info: 'fa-info-circle'
+        };
+        toast.innerHTML = `<i class="fas ${iconMap[type]} toast-icon"></i><p>${message}</p>`;
+        container.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, duration);
+    }
+
+    static showConfirmationModal(title, text, onConfirm) {
+        const modal = document.getElementById('confirm-modal');
         if (!modal) return;
 
-        // Mise à jour du titre de la fenêtre modale
-        const modalTitle = modal.querySelector('.modal-header h2');
-        if (modalTitle) {
-            if (invoiceId) {
-                modalTitle.textContent = Translator.t('edit_invoice');
-            } else {
-                modalTitle.textContent = Translator.t('new_invoice');
-            }
-        }
+        modal.querySelector('#confirm-modal-title').textContent = title;
+        modal.querySelector('#confirm-modal-text').textContent = text;
+        
+        const confirmBtn = document.getElementById('confirm-modal-confirm');
+        const cancelBtn = document.getElementById('confirm-modal-cancel');
+        const closeBtn = modal.querySelector('.close-modal');
+
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+        const closeModal = () => modal.classList.remove('active');
+
+        newConfirmBtn.addEventListener('click', () => { onConfirm(); closeModal(); });
+        newCancelBtn.addEventListener('click', closeModal);
+        closeBtn.addEventListener('click', closeModal);
 
         modal.classList.add('active');
+    }
+
+    static openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    static setupSearchableSelect(container, items, onSelect) {
+        const searchInput = container.querySelector('.select-search');
+        const dropdown = container.querySelector('.select-dropdown');
+        const optionsList = container.querySelector('ul');
+        const hiddenInput = container.querySelector('input[type="hidden"]');
         
-        // Réinitialiser le formulaire et les composants
-        this.initInvoiceForm();
+        const populateOptions = (filteredItems) => {
+            optionsList.innerHTML = '';
+            if (filteredItems.length === 0) {
+                optionsList.innerHTML = `<li class="no-results">Aucun résultat</li>`;
+                return;
+            }
+            filteredItems.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item.name;
+                li.dataset.id = item.id;
+                if(item.price) li.dataset.price = item.price;
+                optionsList.appendChild(li);
+            });
+        };
         
-        // Peupler les listes déroulantes
-        this.populateClientSelect();
-        this.populateProductSelect();
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredItems = items.filter(item => item.name.toLowerCase().includes(searchTerm));
+            populateOptions(filteredItems);
+            dropdown.classList.add('active');
+        });
+
+        searchInput.addEventListener('focus', () => {
+            populateOptions(items);
+            dropdown.classList.add('active');
+        });
+
+        optionsList.addEventListener('click', (e) => {
+            const selectedLi = e.target.closest('li');
+            if (selectedLi && !selectedLi.classList.contains('no-results')) {
+                hiddenInput.value = selectedLi.dataset.id;
+                searchInput.value = selectedLi.textContent;
+                dropdown.classList.remove('active');
+                if (onSelect) onSelect(selectedLi.dataset);
+            }
+        });
+    }
+
+    static initInvoiceForm(invoiceId = null) {
+        const modal = document.getElementById('invoice-modal');
+        const form = document.getElementById('invoice-form');
+        form.reset();
+        form.dataset.editId = '';
+        
+        document.getElementById('items-list').innerHTML = '';
+        document.getElementById('invoice-total').textContent = Invoice.formatAmount(0);
+        
+        const modalTitle = modal.querySelector('.modal-header h2');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        UI.setupSearchableSelect(form.querySelector('#client-select-container'), Client.getAll());
+        
+        const addItem = (itemData = {}) => {
+            const itemsList = document.getElementById('items-list');
+            const itemRow = document.createElement('div');
+            itemRow.classList.add('item-row');
+            itemRow.innerHTML = `
+                <div class="searchable-select-container" style="flex-grow:1;">
+                    <input type="text" class="select-search" placeholder="${Translator.t('select_product')}...">
+                    <div class="select-dropdown"><ul></ul></div>
+                    <input type="hidden" class="product-id">
+                </div>
+                <input type="number" class="quantity" min="1" value="1" required>
+                <button type="button" class="remove-item">&times;</button>`;
+            itemsList.appendChild(itemRow);
+            
+            const productSelectContainer = itemRow.querySelector('.searchable-select-container');
+            UI.setupSearchableSelect(productSelectContainer, Product.getAll(), () => UI.updateInvoiceTotal());
+            
+            itemRow.querySelector('.quantity').addEventListener('input', () => UI.updateInvoiceTotal());
+            itemRow.querySelector('.remove-item').addEventListener('click', () => {
+                if (itemsList.children.length > 1) {
+                    itemRow.remove();
+                    UI.updateInvoiceTotal();
+                } else {
+                    UI.showToast(Translator.t('cannot_remove_last_item'), 'warning');
+                }
+            });
+
+            if (itemData.productId) {
+                const product = Product.getById(itemData.productId);
+                if(product) {
+                    itemRow.querySelector('.select-search').value = product.name;
+                    itemRow.querySelector('.product-id').value = product.id;
+                    itemRow.querySelector('.quantity').value = itemData.quantity;
+                }
+            }
+        };
 
         if (invoiceId) {
-            // Mode édition : charger les données de la facture
             const invoice = Invoice.getById(invoiceId);
-            if (invoice) {
-                // Définir la date
-                const dateInput = document.getElementById('invoice-date');
-                if (dateInput) {
-                    dateInput.value = invoice.date;
-                }
-
-                // Définir le client
-                const clientHiddenInput = document.getElementById('client-select-value');
-                const clientSearchInput = document.getElementById('client-search');
-                if (clientHiddenInput && clientSearchInput) {
-                    clientHiddenInput.value = invoice.clientId;
-                    const client = Client.getById(invoice.clientId);
-                    if (client) {
-                        clientSearchInput.value = client.name;
-                    }
-                }
-
-                // Supprimer les articles existants
-                const itemsList = document.getElementById('items-list');
-                if (itemsList) {
-                    itemsList.innerHTML = '';
-                }
-
-                // Ajouter chaque article de la facture
-                if (invoice.items && invoice.items.length) {
-                    invoice.items.forEach(item => {
-                        const itemRow = document.createElement('div');
-                        itemRow.classList.add('item-row');
-                        itemRow.innerHTML = `
-                            <div class="searchable-select-container">
-                                <div class="select-search-wrapper">
-                                    <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
-                                    <i class="fas fa-search search-icon"></i>
-                                </div>
-                                <div class="select-dropdown product-dropdown">
-                                    <ul class="product-options"></ul>
-                                </div>
-                                <input type="hidden" class="product-select-value" required>
-                            </div>
-                            <input type="number" class="quantity" min="1" value="${item.quantity}" required>
-                            <button type="button" class="remove-item">&times;</button>
-                        `;
-                        itemsList.appendChild(itemRow);
-                        
-                        // Initialiser le select avec recherche
-                        const searchInput = itemRow.querySelector('.product-search');
-                        const dropdown = itemRow.querySelector('.product-dropdown');
-                        const optionsList = itemRow.querySelector('.product-options');
-                        const hiddenInput = itemRow.querySelector('.product-select-value');
-                        
-                        this.setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput);
-                        
-                        // Sélectionner le produit
-                        const product = Product.getById(item.productId);
-                        if (product) {
-                            hiddenInput.value = product.id;
-                            hiddenInput.dataset.price = product.price;
-                            searchInput.value = product.name;
-                        }
-                        
-                        // Ajouter les écouteurs d'événements pour les nouveaux éléments
-                        const quantityInput = itemRow.querySelector('.quantity');
-                        
-                        if (quantityInput) {
-                            quantityInput.addEventListener('input', () => this.updateTotal());
-                        }
-                        
-                        if (hiddenInput) {
-                            hiddenInput.addEventListener('change', () => this.updateTotal());
-                        }
-                    });
-                }
-
-                // Définir l'ID de la facture en cours d'édition
-                const form = document.getElementById('invoice-form');
-                if (form) {
-                    form.dataset.editId = invoiceId;
-                }
-
-                // Mettre à jour le total
-                this.updateTotal();
-            }
-        }
-    }
-
-    static initModals() {
-        // Supprimer les anciens event listeners en clonant et remplaçant les boutons
-        const newInvoiceBtn = document.querySelector('.new-invoice-btn');
-        if (newInvoiceBtn) {
-            const newBtn = newInvoiceBtn.cloneNode(true);
-            newInvoiceBtn.parentNode.replaceChild(newBtn, newInvoiceBtn);
+            if (!invoice) return; 
             
-            const invoiceModal = document.getElementById('invoice-modal');
-            if (invoiceModal) {
-                newBtn.addEventListener('click', () => {
-                    this.handleInvoiceFormOpen();
-                });
+            form.dataset.editId = invoiceId;
+            modalTitle.textContent = Translator.t('edit_invoice');
+            submitBtn.textContent = Translator.t('update');
 
-                const closeBtn = invoiceModal.querySelector('.close-modal');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', () => {
-                        invoiceModal.classList.remove('active');
-                        // Réinitialiser complètement le formulaire lors de la fermeture
-                        const form = document.getElementById('invoice-form');
-                        if (form) {
-                            form.reset();
-                            // Supprimer l'ID de facture en cours d'édition
-                            delete form.dataset.editId;
-                            // Vider la liste des articles
-                            const itemsList = document.getElementById('items-list');
-                            if (itemsList) {
-                                itemsList.innerHTML = '';
-                                this.addItemRow(); // Ajouter une ligne vide
-                            }
-                        }
-                    });
-                }
+            const client = Client.getById(invoice.clientId);
+            if (client) {
+                form.querySelector('#client-search').value = client.name;
+                form.querySelector('#client-select-value').value = client.id;
             }
+            document.getElementById('invoice-date').valueAsDate = new Date(invoice.date);
+            invoice.items.forEach(item => addItem(item));
+        } else {
+            modalTitle.textContent = Translator.t('new_invoice');
+            submitBtn.textContent = Translator.t('save');
+            addItem();
+            document.getElementById('invoice-date').valueAsDate = new Date();
         }
-
-        // Modal Client
-        const newClientBtn = document.querySelector('.new-client-btn');
-        if (newClientBtn) {
-            const newBtn = newClientBtn.cloneNode(true);
-            newClientBtn.parentNode.replaceChild(newBtn, newClientBtn);
-            
-            const clientModal = document.getElementById('client-modal');
-            if (clientModal) {
-                newBtn.addEventListener('click', () => {
-                    clientModal.classList.add('active');
-                    if (clientModal.querySelector('form')) {
-                        clientModal.querySelector('form').reset();
-                    }
-                });
-
-                const closeBtn = clientModal.querySelector('.close-modal');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', () => {
-                        clientModal.classList.remove('active');
-                    });
-                }
-            }
-        }
-
-        // Modal Produit
-        const newProductBtn = document.querySelector('.new-product-btn');
-        if (newProductBtn) {
-            const newBtn = newProductBtn.cloneNode(true);
-            newProductBtn.parentNode.replaceChild(newBtn, newProductBtn);
-            
-            const productModal = document.getElementById('product-modal');
-            if (productModal) {
-                newBtn.addEventListener('click', () => {
-                    productModal.classList.add('active');
-                    if (productModal.querySelector('form')) {
-                        productModal.querySelector('form').reset();
-                    }
-                });
-
-                const closeBtn = productModal.querySelector('.close-modal');
-                if (closeBtn) {
-                    closeBtn.addEventListener('click', () => {
-                        productModal.classList.remove('active');
-                    });
-                }
-            }
-        }
-
-        // Fermeture des modals en cliquant en dehors
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.remove('active');
-                }
-            });
-        });
+        
+        document.getElementById('add-item').onclick = () => addItem();
+        UI.updateInvoiceTotal();
+        this.openModal('invoice-modal');
     }
 
-    static initInvoiceForm() {
-        const form = document.getElementById('invoice-form');
-        if (!form) return;
-
-        // Réinitialiser les gestionnaires d'événements existants
-        const newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
-
-        // MAJ des libellés des champs
-        const labels = newForm.querySelectorAll('label');
-        labels.forEach(label => {
-            const inputId = label.getAttribute('for');
-            if (inputId === 'invoice-client') label.textContent = Translator.t('client');
-            if (inputId === 'invoice-date') label.textContent = Translator.t('date');
-        });
-
-        // MAJ des boutons
-        const submitButton = newForm.querySelector('button[type="submit"]');
-        if (submitButton) {
-            submitButton.textContent = Translator.t('save');
-        }
-        
-        const cancelButton = newForm.querySelector('button.cancel-button');
-        if (cancelButton) {
-            cancelButton.textContent = Translator.t('cancel');
-        }
-        
-        // MAJ du titre de la section articles
-        const itemsTitle = newForm.querySelector('.items-title');
-        if (itemsTitle) {
-            itemsTitle.textContent = Translator.t('invoice_items');
-        }
-
-        // Initialiser les selects avec recherche
-        this.initSearchableSelects();
-        
-        // Gestionnaire pour l'ajout d'articles
-        const addItemBtn = document.getElementById('add-item');
-        if (addItemBtn) {
-            addItemBtn.textContent = Translator.t('add_item');
-            addItemBtn.addEventListener('click', () => this.addItemRow());
-        }
-        
-        // Supprimer les éléments existants du formulaire
-        const itemsList = document.getElementById('items-list');
-        if (itemsList) {
-            itemsList.innerHTML = '';
-            // Ajouter une ligne initiale vide
-            this.addItemRow();
-            
-            // Gestionnaire pour la suppression d'articles
-            itemsList.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-item')) {
-                    // Vérifier s'il reste plus d'un article
-                    const itemRows = document.querySelectorAll('.item-row');
-                    if (itemRows.length > 1) {
-                        e.target.closest('.item-row').remove();
-                        this.updateTotal();
-                    } else {
-                        alert(Translator.t('cannot_remove_last_item'));
-                    }
-                }
-            });
-        }
-        
-        // Event listener pour la soumission du formulaire
-        newForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleInvoiceSubmit(newForm);
-        });
-        
-        // Retirer l'ID de la facture en cours d'édition
-        delete newForm.dataset.editId;
-        
-        // Vider les selects
-        document.getElementById('client-search').value = '';
-        document.getElementById('client-select-value').value = '';
-        
-        // Mise à jour de la date au jour actuel
-        const dateInput = document.getElementById('invoice-date');
-        if (dateInput) {
-            const today = new Date();
-            dateInput.value = today.toISOString().slice(0, 10);
-        }
-    }
-    
-    static addItemRow() {
-        const itemsList = document.getElementById('items-list');
-        if (!itemsList) return;
-        
-        const itemRow = document.createElement('div');
-        itemRow.classList.add('item-row');
-        itemRow.innerHTML = `
-            <div class="searchable-select-container">
-                <div class="select-search-wrapper">
-                    <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
-                    <i class="fas fa-search search-icon"></i>
-                </div>
-                <div class="select-dropdown product-dropdown">
-                    <ul class="product-options"></ul>
-                </div>
-                <input type="hidden" class="product-select-value" required>
-            </div>
-            <input type="number" class="quantity" min="1" value="1" required>
-            <button type="button" class="remove-item">&times;</button>
-        `;
-        itemsList.appendChild(itemRow);
-        
-        // Initialiser le nouveau select avec recherche
-        const searchInput = itemRow.querySelector('.product-search');
-        const dropdown = itemRow.querySelector('.product-dropdown');
-        const optionsList = itemRow.querySelector('.product-options');
-        const hiddenInput = itemRow.querySelector('.product-select-value');
-        const quantityInput = itemRow.querySelector('.quantity');
-        
-        this.setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput);
-        
-        // Mise à jour du total lors des changements
-        quantityInput.addEventListener('input', () => this.updateTotal());
-        hiddenInput.addEventListener('change', () => this.updateTotal());
-        
-        // Mettre à jour le total immédiatement
-        this.updateTotal();
-        
-        return itemRow;
-    }
-
-    static initSearchableSelects() {
-        // Initialiser les selects pour clients
-        const clientSearchInput = document.getElementById('client-search');
-        const clientDropdown = document.getElementById('client-dropdown');
-        const clientOptionsList = document.getElementById('client-options');
-        const clientHiddenInput = document.getElementById('client-select-value');
-        
-        if (clientSearchInput && clientDropdown && clientOptionsList && clientHiddenInput) {
-            this.setupClientSearchableSelect(clientSearchInput, clientDropdown, clientOptionsList, clientHiddenInput);
-        }
-        
-        // Initialiser les selects pour produits
-        const productSearchInputs = document.querySelectorAll('.product-search');
-        productSearchInputs.forEach(searchInput => {
-            const dropdown = searchInput.closest('.searchable-select-container').querySelector('.product-dropdown');
-            const optionsList = searchInput.closest('.searchable-select-container').querySelector('.product-options');
-            const hiddenInput = searchInput.closest('.searchable-select-container').querySelector('.product-select-value');
-            
-            if (dropdown && optionsList && hiddenInput) {
-                this.setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput);
-            }
-        });
-    }
-    
-    static setupClientSearchableSelect(searchInput, dropdown, optionsList, hiddenInput) {
-        // Charger toutes les options
-        const clients = Client.getAll();
-        this.populateClientOptions(optionsList, clients);
-        
-        // Gestionnaire d'événements pour la recherche
-        searchInput.addEventListener('input', () => {
-            const searchTerm = searchInput.value.toLowerCase();
-            const filteredClients = clients.filter(client => 
-                client.name.toLowerCase().includes(searchTerm) || 
-                (client.email && client.email.toLowerCase().includes(searchTerm))
-            );
-            this.populateClientOptions(optionsList, filteredClients);
-            dropdown.classList.add('active');
-        });
-        
-        // Ouvrir le dropdown au focus
-        searchInput.addEventListener('focus', () => {
-            dropdown.classList.add('active');
-        });
-        
-        // Gérer la sélection d'une option
-        optionsList.addEventListener('click', (e) => {
-            const selectedLi = e.target.closest('li');
-            if (selectedLi) {
-                const selectedId = selectedLi.dataset.id;
-                const selectedName = selectedLi.textContent.trim();
-                hiddenInput.value = selectedId;
-                searchInput.value = selectedName;
-                dropdown.classList.remove('active');
-                
-                // Déclencher l'événement change pour le tracking
-                const event = new Event('change');
-                hiddenInput.dispatchEvent(event);
-            }
-        });
-        
-        // Fermer le dropdown lorsqu'on clique ailleurs
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('active');
-            }
-        });
-    }
-    
-    static setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput) {
-        // Charger toutes les options
-        const products = Product.getAll();
-        this.populateProductOptions(optionsList, products);
-        
-        // Gestionnaire d'événements pour la recherche
-        searchInput.addEventListener('input', () => {
-            const searchTerm = searchInput.value.toLowerCase();
-            const filteredProducts = products.filter(product => 
-                product.name.toLowerCase().includes(searchTerm) || 
-                (product.description && product.description.toLowerCase().includes(searchTerm))
-            );
-            this.populateProductOptions(optionsList, filteredProducts);
-            dropdown.classList.add('active');
-        });
-        
-        // Ouvrir le dropdown au focus
-        searchInput.addEventListener('focus', () => {
-            dropdown.classList.add('active');
-        });
-        
-        // Gérer la sélection d'une option
-        optionsList.addEventListener('click', (e) => {
-            const selectedLi = e.target.closest('li');
-            if (selectedLi) {
-                const selectedId = selectedLi.dataset.id;
-                const selectedName = selectedLi.textContent.trim();
-                const selectedPrice = selectedLi.dataset.price;
-                hiddenInput.value = selectedId;
-                hiddenInput.dataset.price = selectedPrice;
-                searchInput.value = selectedName;
-                dropdown.classList.remove('active');
-                
-                // Déclencher l'événement change pour le tracking
-                const event = new Event('change');
-                hiddenInput.dispatchEvent(event);
-                
-                // Mettre à jour le total
-                this.updateTotal();
-            }
-        });
-        
-        // Fermer le dropdown lorsqu'on clique ailleurs
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('active');
-            }
-        });
-    }
-    
-    static populateClientOptions(optionsList, clients) {
-        optionsList.innerHTML = '';
-        
-        if (clients.length === 0) {
-            optionsList.innerHTML = '<li class="no-results">Aucun client trouvé</li>';
-            return;
-        }
-        
-        clients.forEach(client => {
-            const li = document.createElement('li');
-            li.textContent = client.name;
-            li.dataset.id = client.id;
-            optionsList.appendChild(li);
-        });
-    }
-    
-    static populateProductOptions(optionsList, products) {
-        optionsList.innerHTML = '';
-        
-        if (products.length === 0) {
-            optionsList.innerHTML = '<li class="no-results">Aucun produit trouvé</li>';
-            return;
-        }
-        
-        products.forEach(product => {
-            const li = document.createElement('li');
-            li.textContent = product.name;
-            li.dataset.id = product.id;
-            li.dataset.price = product.price;
-            optionsList.appendChild(li);
-        });
-    }
-
-    static populateClientSelect() {
-        const clientOptionsList = document.getElementById('client-options');
-        if (!clientOptionsList) return;
-        
-        const clients = Client.getAll();
-        this.populateClientOptions(clientOptionsList, clients);
-    }
-
-    static populateProductSelect() {
-        const productOptionsLists = document.querySelectorAll('.product-options');
-        if (!productOptionsLists.length) return;
-        
-        const products = Product.getAll();
-        productOptionsLists.forEach(optionsList => {
-            this.populateProductOptions(optionsList, products);
-        });
-    }
-
-    static updateTotal() {
-        const totalElement = document.getElementById('invoice-total');
-        if (!totalElement) return;
-
+    static updateInvoiceTotal() {
         let total = 0;
-        const itemRows = document.querySelectorAll('.item-row');
+        document.querySelectorAll('#items-list .item-row').forEach(row => {
+            const productId = row.querySelector('.product-id').value;
+            const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+            const product = Product.getById(productId);
+            if (product) {
+                total += product.price * quantity;
+            }
+        });
+        document.getElementById('invoice-total').textContent = Invoice.formatAmount(total);
+    }
+    
+    static handleInvoiceSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const editId = form.dataset.editId;
+        const clientId = form.querySelector('#client-select-value').value;
+        const date = form.querySelector('#invoice-date').value;
+        const newItems = [];
+
+        let isValid = true;
+        form.querySelectorAll('.item-row').forEach(row => {
+            const productId = row.querySelector('.product-id').value;
+            const product = Product.getById(productId);
+            if(product) {
+                newItems.push({
+                    productId: productId,
+                    name: product.name,
+                    price: product.price,
+                    quantity: parseInt(row.querySelector('.quantity').value)
+                });
+            } else {
+                isValid = false;
+            }
+        });
         
-        itemRows.forEach(row => {
-            const hiddenInput = row.querySelector('.product-select-value');
-            const quantity = parseInt(row.querySelector('.quantity')?.value) || 0;
-            const price = hiddenInput && hiddenInput.dataset.price ? parseFloat(hiddenInput.dataset.price) || 0 : 0;
-            total += quantity * price;
+        if (!clientId || newItems.length === 0 || !isValid) {
+            UI.showToast(Translator.t('invoice_validation_error'), 'error');
+            return;
+        }
+
+        // --- Stock Validation Logic ---
+        const oldInvoice = editId ? Invoice.getById(editId) : null;
+        const stockChanges = new Map();
+
+        // Calculate deductions for new/updated items
+        newItems.forEach(item => {
+            stockChanges.set(item.productId, (stockChanges.get(item.productId) || 0) + item.quantity);
         });
 
-        totalElement.textContent = Invoice.formatAmount(total);
+        // If updating, calculate stock to be returned from old items
+        if (oldInvoice) {
+            oldInvoice.items.forEach(item => {
+                stockChanges.set(item.productId, (stockChanges.get(item.productId) || 0) - item.quantity);
+            });
+        }
+        
+        // Check for sufficient stock
+        for (const [productId, quantityChange] of stockChanges.entries()) {
+            if (quantityChange <= 0) continue; // No deduction needed or stock is being returned
+            const product = Product.getById(productId);
+            const availableStock = product.stock || 0;
+            if (availableStock < quantityChange) {
+                UI.showToast(`${Translator.t('insufficient_stock')} ${product.name} (Requis: ${quantityChange}, Disponible: ${availableStock})`, 'error');
+                return;
+            }
+        }
+        // --- End Stock Validation ---
+
+        if (editId) {
+            const invoice = Invoice.getById(editId);
+            invoice.clientId = clientId;
+            invoice.items = newItems;
+            invoice.date = new Date(date);
+            invoice.save();
+            UI.showToast(Translator.t('invoice_updated'), 'success');
+        } else {
+            const newInvoice = new Invoice(clientId, newItems, new Date(date));
+            Invoice.add(newInvoice);
+            UI.showToast(Translator.t('invoice_created'), 'success');
+        }
+        
+        // Apply stock changes
+        for (const [productId, quantityChange] of stockChanges.entries()) {
+            if (quantityChange !== 0) {
+                Product.updateStock(productId, -quantityChange);
+            }
+        }
+
+        document.getElementById('invoice-modal').classList.remove('active');
+        Router.handleRoute(); // Refresh current view
     }
 
-    static updateInvoicesList() {
-        const tbody = document.getElementById('invoices-list');
-        if (!tbody) return;
-        
-        const invoices = Invoice.getAll();
-        tbody.innerHTML = '';
-        
-        invoices.forEach(invoice => {
-            const client = Client.getAll().find(c => c.id === invoice.clientId);
-            const row = document.createElement('tr');
-            
-            row.innerHTML = `
-                <td>${invoice.id}</td>
-                <td>${client ? client.name : 'Client inconnu'}</td>
-                <td>${new Date(invoice.date).toLocaleDateString()}</td>
-                <td>${Invoice.formatAmount(invoice.totalTTC)}</td>
-                <td>
-                    <span class="status-badge ${invoice.status} clickable" data-invoice-id="${invoice.id}">
-                        ${invoice.status === 'paid' ? 'Payée' : 'En attente'}
-                    </span>
-                </td>
-                <td>
-                    <button class="action-btn edit-btn" data-id="${invoice.id}" title="${Translator.t('edit')}">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="action-btn view-btn" data-id="${invoice.id}" title="Voir la facture">
-                        <i class="fas fa-file-alt"></i>
-                    </button>
-                    <button class="action-btn download-btn" data-id="${invoice.id}" title="Télécharger la facture">
-                        <i class="fas fa-cloud-download-alt"></i>
-                    </button>
-                    <button class="action-btn delete-btn" data-id="${invoice.id}" title="Supprimer la facture">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </td>
-            `;
+    static initClientForm(clientId = null) {
+        const modal = document.getElementById('client-modal');
+        const form = document.getElementById('client-form');
+        form.reset();
+        form.querySelector('#client-id').value = '';
 
-            tbody.appendChild(row);
-        });
+        const modalTitle = modal.querySelector('#client-modal-title');
+        const submitBtn = form.querySelector('button[type="submit"]');
 
-        // Ajout des gestionnaires d'événements pour les actions
-        this.initInvoiceActions();
-        this.initStatusClickHandler();
+        if (clientId) {
+            const client = Client.getById(clientId);
+            if(client) {
+                modalTitle.textContent = Translator.t('edit_client');
+                submitBtn.textContent = Translator.t('update');
+                form.querySelector('#client-id').value = client.id;
+                form.querySelector('#client-name').value = client.name;
+                form.querySelector('#client-email').value = client.email;
+                form.querySelector('#client-phone').value = client.phone;
+                form.querySelector('#client-address').value = client.address;
+            }
+        } else {
+            modalTitle.textContent = Translator.t('new_client');
+            submitBtn.textContent = Translator.t('save');
+        }
+        this.openModal('client-modal');
     }
 
-    static initInvoiceActions() {
-        // Marquer comme payée
-        document.querySelectorAll('.mark-paid-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const invoiceId = btn.dataset.id;
-                const invoices = Invoice.getAll();
-                const index = invoices.findIndex(inv => inv.id === invoiceId);
-                
-                if (index !== -1) {
-                    invoices[index].status = 'paid';
-                    Storage.setInvoices(invoices);
-                    this.updateInvoicesList();
-                    Invoice.updateDashboardStats();
-                }
-            });
-        });
+    static handleClientSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const clientId = form.querySelector('#client-id').value;
+        const name = form.querySelector('#client-name').value;
+        const email = form.querySelector('#client-email').value;
+        const phone = form.querySelector('#client-phone').value;
+        const address = form.querySelector('#client-address').value;
 
-        // Supprimer
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const invoiceId = btn.dataset.id;
-                if (confirm('Êtes-vous sûr de vouloir supprimer cette facture ?')) {
-                    if (Invoice.delete(invoiceId)) {
-                        this.updateInvoicesList();
-                        Invoice.updateDashboardStats();
-                    }
-                }
-            });
-        });
+        if (!name) {
+            UI.showToast(Translator.t('client_name_required'), 'error');
+            return;
+        }
 
-        // Voir
-        document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const invoiceId = btn.dataset.id;
-                const invoice = Invoice.getById(invoiceId);
-                if (invoice) {
-                    const html = invoice.generateHTML();
-                    const win = window.open('', '_blank');
-                    win.document.write(html);
-                    win.document.close();
-                    win.document.addEventListener('DOMContentLoaded', () => {
-                        win.print();
-                    });
-                }
-            });
-        });
-
-        // Télécharger
-        document.querySelectorAll('.download-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const invoiceId = btn.dataset.id;
-                const invoice = Invoice.getById(invoiceId);
-                if (invoice) {
-                    const html = invoice.generateHTML();
-                    // Créer un élément temporaire pour le PDF
-                    const element = document.createElement('div');
-                    element.innerHTML = html;
-                    document.body.appendChild(element);
-                    
-                    // Utiliser html2pdf pour la conversion
-                    const opt = {
-                        margin: [10, 10, 10, 10], // Marges réduites [haut, droite, bas, gauche] en mm
-                        filename: `facture-${invoice.id}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { 
-                            scale: 2,
-                            letterRendering: true
-                        },
-                        jsPDF: { 
-                            unit: 'mm', 
-                            format: 'a4', 
-                            orientation: 'portrait',
-                            compress: true
-                        }
-                    };
-                    
-                    // Charger dynamiquement html2pdf si nécessaire
-                    if (typeof html2pdf === 'undefined') {
-                        const script = document.createElement('script');
-                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-                        script.onload = () => {
-                            html2pdf().set(opt).from(element).save().then(() => {
-                                document.body.removeChild(element);
-                            });
-                        };
-                        document.head.appendChild(script);
-                    } else {
-                        html2pdf().set(opt).from(element).save().then(() => {
-                            document.body.removeChild(element);
-                        });
-                    }
-                }
-            });
-        });
-
-        // Éditer
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const invoiceId = btn.dataset.id;
-                this.openInvoiceForEdit(invoiceId);
-            });
-        });
-    }
-
-    static initStatusClickHandler() {
-        document.querySelectorAll('.status-badge.clickable').forEach(badge => {
-            badge.addEventListener('click', () => {
-                const invoiceId = badge.dataset.invoiceId;
-                const invoices = Invoice.getAll();
-                const index = invoices.findIndex(inv => inv.id === invoiceId);
-                
-                if (index !== -1) {
-                    // Basculer le statut
-                    invoices[index].status = invoices[index].status === 'paid' ? 'pending' : 'paid';
-                    Storage.setInvoices(invoices);
-                    this.updateInvoicesList();
-                    Invoice.updateDashboardStats();
-                }
-            });
-        });
-    }
-
-    static updateClientsList() {
-        const tbody = document.getElementById('clients-list');
-        if (!tbody) return;
-        
         const clients = Client.getAll();
-        tbody.innerHTML = '';
-        
-        clients.forEach(client => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${client.name}</td>
-                <td>${client.email}</td>
-                <td>${client.phone}</td>
-                <td>${client.address}</td>
-                <td>
-                    <button class="action-btn edit-btn" data-id="${client.id}" title="Modifier le client">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="action-btn delete-btn" data-id="${client.id}" title="Supprimer le client">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
+        if (clientId) {
+            const clientIndex = clients.findIndex(c => c.id === clientId);
+            if (clientIndex !== -1) {
+                clients[clientIndex].name = name;
+                clients[clientIndex].email = email;
+                clients[clientIndex].phone = phone;
+                clients[clientIndex].address = address;
+                UI.showToast(Translator.t('client_updated'), 'success');
+            }
+        } else {
+            const newClient = new Client(name, email, address, phone);
+            clients.push(newClient);
+            UI.showToast(Translator.t('client_added'), 'success');
+        }
 
-        // Initialisation des boutons d'action
-        this.initClientActions();
+        Storage.setClients(clients);
+        document.getElementById('client-modal').classList.remove('active');
+        Router.handleRoute();
     }
 
-    static updateProductsList() {
-        const tbody = document.getElementById('products-list');
-        if (!tbody) return;
-        
+    static initProductForm(productId = null) {
+        const modal = document.getElementById('product-modal');
+        const form = document.getElementById('product-form');
+        form.reset();
+        form.querySelector('#product-id').value = '';
+
+        const modalTitle = modal.querySelector('#product-modal-title');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const stockInput = form.querySelector('#product-stock');
+
+        if (productId) {
+            const product = Product.getById(productId);
+            if (product) {
+                modalTitle.textContent = Translator.t('edit_product');
+                submitBtn.textContent = Translator.t('update');
+                form.querySelector('#product-id').value = product.id;
+                form.querySelector('#product-name').value = product.name;
+                form.querySelector('#product-price').value = product.price;
+                form.querySelector('#product-description').value = product.description;
+                stockInput.value = product.stock;
+                stockInput.disabled = true; // Stock is managed separately
+            }
+        } else {
+            modalTitle.textContent = Translator.t('new_product');
+            submitBtn.textContent = Translator.t('save');
+            stockInput.value = 0;
+            stockInput.disabled = false;
+        }
+        this.openModal('product-modal');
+    }
+
+    static handleProductSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const productId = form.querySelector('#product-id').value;
+        const name = form.querySelector('#product-name').value;
+        const price = parseFloat(form.querySelector('#product-price').value);
+        const description = form.querySelector('#product-description').value;
+
+        if (!name) {
+            UI.showToast(Translator.t('product_name_required'), 'error');
+            return;
+        }
+
         const products = Product.getAll();
-        const currency = Storage.getSettings().currency;
-        tbody.innerHTML = '';
+        if (productId) {
+            const productIndex = products.findIndex(p => p.id === productId);
+            if (productIndex !== -1) {
+                products[productIndex].name = name;
+                products[productIndex].price = price;
+                products[productIndex].description = description;
+                UI.showToast(Translator.t('product_updated'), 'success');
+            }
+        } else {
+            const stock = parseInt(form.querySelector('#product-stock').value) || 0;
+            const newProduct = new Product(name, price, description, stock);
+            products.push(newProduct);
+            UI.showToast(Translator.t('product_added'), 'success');
+        }
+
+        Storage.setProducts(products);
+        document.getElementById('product-modal').classList.remove('active');
+        Router.handleRoute();
+    }
+    
+    static initStockForm(productId) {
+        const product = Product.getById(productId);
+        if (!product) return;
+        const modal = document.getElementById('stock-modal');
+        const form = document.getElementById('stock-form');
+        form.reset();
         
-        products.forEach(product => {
+        form.querySelector('#stock-product-id').value = productId;
+        modal.querySelector('#stock-product-name').textContent = product.name;
+        modal.querySelector('#stock-current-quantity').textContent = `${Translator.t('current_stock')}: ${product.stock}`;
+        this.openModal('stock-modal');
+    }
+    
+    static handleStockSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const productId = form.querySelector('#stock-product-id').value;
+        const quantityChange = parseInt(form.querySelector('#stock-quantity-change').value);
+
+        if (isNaN(quantityChange)) return;
+
+        if (Product.updateStock(productId, quantityChange)) {
+            UI.showToast(Translator.t('stock_updated'), 'success');
+        }
+        document.getElementById('stock-modal').classList.remove('active');
+        Router.handleRoute();
+    }
+    
+    static initEmployeeForm(employeeId = null) {
+        const modal = document.getElementById('employee-modal');
+        const form = document.getElementById('employee-form');
+        form.reset();
+        form.querySelector('#employee-id').value = '';
+
+        const modalTitle = modal.querySelector('#employee-modal-title');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        if (employeeId) {
+            const employee = Employee.getById(employeeId);
+            if(employee) {
+                modalTitle.textContent = Translator.t('edit_employee');
+                submitBtn.textContent = Translator.t('update');
+                form.querySelector('#employee-id').value = employee.id;
+                form.querySelector('#employee-name').value = employee.name;
+                form.querySelector('#employee-position').value = employee.position;
+                form.querySelector('#employee-hire-date').value = employee.hireDate;
+                form.querySelector('#employee-salary').value = employee.salary;
+                form.querySelector('#employee-nss').value = employee.nss;
+                form.querySelector('#employee-family-sit').value = employee.familySit;
+            }
+        } else {
+            modalTitle.textContent = Translator.t('new_employee');
+            submitBtn.textContent = Translator.t('save');
+        }
+        this.openModal('employee-modal');
+    }
+
+    static handleEmployeeSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const employeeId = form.querySelector('#employee-id').value;
+        const name = form.querySelector('#employee-name').value;
+        const position = form.querySelector('#employee-position').value;
+        const hireDate = form.querySelector('#employee-hire-date').value;
+        const salary = parseFloat(form.querySelector('#employee-salary').value);
+        const nss = form.querySelector('#employee-nss').value;
+        const familySit = form.querySelector('#employee-family-sit').value;
+
+        if (!name) {
+            UI.showToast(Translator.t('employee_name_required'), 'error');
+            return;
+        }
+
+        const employees = Employee.getAll();
+        if (employeeId) {
+            const employeeIndex = employees.findIndex(emp => emp.id === employeeId);
+            if (employeeIndex !== -1) {
+                employees[employeeIndex].name = name;
+                employees[employeeIndex].position = position;
+                employees[employeeIndex].hireDate = hireDate;
+                employees[employeeIndex].salary = salary;
+                employees[employeeIndex].nss = nss;
+                employees[employeeIndex].familySit = familySit;
+                UI.showToast(Translator.t('employee_updated'), 'success');
+            }
+        } else {
+            const newEmployee = new Employee(name, position, hireDate, salary, nss, familySit);
+            employees.push(newEmployee);
+            UI.showToast(Translator.t('employee_added'), 'success');
+        }
+
+        Storage.setEmployees(employees);
+        document.getElementById('employee-modal').classList.remove('active');
+        Router.handleRoute();
+    }
+
+
+    static updateList(tbodyId, items, rowGenerator, actionsInitializer) {
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        items.forEach(item => {
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${product.name}</td>
-                <td>${Invoice.formatAmount(product.price)}</td>
-                <td>${product.description}</td>
-                <td>${product.stock || 0}</td>
-                <td>
-                    <button class="action-btn edit-btn" data-id="${product.id}" title="Modifier le produit">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="action-btn stock-btn" data-id="${product.id}" title="Gérer le stock">
-                        <i class="fas fa-boxes"></i>
-                    </button>
-                    <button class="action-btn delete-btn" data-id="${product.id}" title="Supprimer le produit">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </td>
-            `;
+            row.innerHTML = rowGenerator(item);
             tbody.appendChild(row);
         });
-
-        // Initialisation des boutons d'action
-        this.initProductActions();
+        if (actionsInitializer) actionsInitializer();
+    }
+    
+    static initInvoiceActions() {
+        document.querySelectorAll('#invoices-list .action-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                const id = e.currentTarget.dataset.id;
+                const invoice = Invoice.getById(id);
+                if (!invoice) return;
+                if (btn.classList.contains('edit-btn')) UI.initInvoiceForm(id);
+                if (btn.classList.contains('view-btn')) {
+                    const win = window.open('', '_blank');
+                    win.document.write(invoice.generateHTML());
+                    win.document.close();
+                }
+                if (btn.classList.contains('download-btn')) {
+                    html2pdf().from(invoice.generateHTML()).save(`facture-${id.replace('/', '-')}.pdf`);
+                }
+                if (btn.classList.contains('delete-btn')) {
+                    UI.showConfirmationModal(
+                        Translator.t('delete_invoice'),
+                        Translator.t('delete_invoice_confirm'),
+                        () => {
+                            Invoice.delete(id);
+                            UI.showToast(Translator.t('invoice_deleted'), 'success');
+                            Router.handleRoute();
+                        }
+                    );
+                }
+            };
+        });
+        document.querySelectorAll('#invoices-list .status-badge.clickable').forEach(badge => {
+            badge.onclick = (e) => {
+                const id = e.currentTarget.dataset.invoiceId;
+                const invoice = Invoice.getById(id);
+                if (!invoice) return;
+                invoice.status = invoice.status === 'paid' ? 'pending' : 'paid';
+                invoice.save();
+                Router.handleRoute();
+            };
+        });
     }
 
     static initClientActions() {
-        // Nouveau client
-        const newClientBtn = document.querySelector('.new-client-btn');
-        const clientModal = document.getElementById('client-modal');
-        const clientForm = document.getElementById('client-form');
-
-        if (newClientBtn && clientModal) {
-            newClientBtn.addEventListener('click', () => {
-                clientModal.classList.add('active');
-                // Réinitialiser le formulaire et supprimer l'ID d'édition
-                clientForm.reset();
-                clientForm.removeAttribute('data-edit-id');
-                // Mettre à jour le titre du modal et le bouton
-                clientModal.querySelector('.modal-header h2').textContent = 'Nouveau Client';
-                clientModal.querySelector('.save-btn').textContent = 'Enregistrer';
-            });
-
-            // Fermeture du modal
-            clientModal.querySelector('.close-modal').addEventListener('click', () => {
-                clientModal.classList.remove('active');
-            });
-        }
-
-        // Gestion des boutons d'action (modifier et supprimer)
         document.querySelectorAll('#clients-list .action-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const clientId = btn.dataset.id;
-                const clients = Client.getAll();
-                const client = clients.find(c => c.id === clientId);
-                
-                if (!client) return;
-
-                if (btn.classList.contains('edit-btn')) {
-                    // Ouvrir le modal avec les données du client
-                    const modal = document.getElementById('client-modal');
-                    if (modal) {
-                        document.getElementById('client-name').value = client.name;
-                        document.getElementById('client-email').value = client.email;
-                        document.getElementById('client-address').value = client.address;
-                        document.getElementById('client-phone').value = client.phone;
-                        
-                        // Ajouter l'ID du client en cours d'édition
-                        clientForm.setAttribute('data-edit-id', clientId);
-                        
-                        // Mettre à jour le titre du modal et le bouton
-                        modal.querySelector('.modal-header h2').textContent = 'Modifier Client';
-                        modal.querySelector('.save-btn').textContent = 'Mettre à jour';
-                        
-                        modal.classList.add('active');
-                    }
-                } else if (btn.classList.contains('delete-btn')) {
-                    if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
-                        const index = clients.findIndex(c => c.id === clientId);
-                        if (index !== -1) {
-                            clients.splice(index, 1);
+             btn.onclick = (e) => {
+                 const id = e.currentTarget.dataset.id;
+                 if (btn.classList.contains('edit-btn')) {
+                     UI.initClientForm(id);
+                 }
+                 if (btn.classList.contains('delete-btn')) {
+                     UI.showConfirmationModal(
+                        Translator.t('delete'),
+                        Translator.t('delete_client_confirm'),
+                        () => {
+                            let clients = Client.getAll().filter(c => c.id !== id);
                             Storage.setClients(clients);
-                            UI.updateClientsList();
+                            UI.showToast(Translator.t('client_deleted'), 'success');
+                            Router.handleRoute();
                         }
-                    }
-                }
-            });
+                     );
+                 }
+            };
         });
-
-        // Soumission du formulaire (création ou modification)
-        if (clientForm) {
-            // Supprimer les anciens event listeners
-            const newClientForm = clientForm.cloneNode(true);
-            clientForm.parentNode.replaceChild(newClientForm, clientForm);
-            
-            newClientForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const editId = clientForm.getAttribute('data-edit-id');
-                const clientData = {
-                    name: document.getElementById('client-name').value,
-                    email: document.getElementById('client-email').value,
-                    address: document.getElementById('client-address').value,
-                    phone: document.getElementById('client-phone').value
-                };
-
-                const clients = Client.getAll();
-                if (editId) {
-                    // Mode édition
-                    const index = clients.findIndex(c => c.id === editId);
-                    if (index !== -1) {
-                        // Conserver l'ID existant et mettre à jour les autres données
-                        clients[index] = {
-                            id: editId,
-                            ...clientData
-                        };
-                        Storage.setClients(clients);
-                    }
-                } else {
-                    // Mode création
-                    const client = new Client(
-                        clientData.name,
-                        clientData.email,
-                        clientData.address,
-                        clientData.phone
-                    );
-                    Client.add(client);
-                }
-
-                this.updateClientsList();
-                document.getElementById('client-modal').classList.remove('active');
-                newClientForm.reset();
-                clientForm.removeAttribute('data-edit-id');
-            });
-        }
     }
 
     static initProductActions() {
-        // Nouveau produit
-        const newProductBtn = document.querySelector('.new-product-btn');
-        const productModal = document.getElementById('product-modal');
-        const productForm = document.getElementById('product-form');
-
-        if (newProductBtn && productModal) {
-            newProductBtn.addEventListener('click', () => {
-                productModal.classList.add('active');
-                // Réinitialiser le formulaire et supprimer l'ID d'édition
-                productForm.reset();
-                productForm.removeAttribute('data-edit-id');
-                // Mettre à jour le titre du modal et le bouton
-                productModal.querySelector('.modal-header h2').textContent = 'Nouveau Produit';
-                productModal.querySelector('.save-btn').textContent = 'Enregistrer';
-            });
-
-            // Fermeture du modal
-            productModal.querySelector('.close-modal').addEventListener('click', () => {
-                productModal.classList.remove('active');
-            });
-        }
-
-        // Gestion des boutons d'action (modifier, gérer stock et supprimer)
         document.querySelectorAll('#products-list .action-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const productId = btn.dataset.id;
-                const products = Product.getAll();
-                const product = products.find(p => p.id === productId);
-                
-                if (!product) return;
+            btn.onclick = (e) => {
+                const id = e.currentTarget.dataset.id;
+                if (btn.classList.contains('edit-btn')) {
+                    UI.initProductForm(id);
+                }
+                if (btn.classList.contains('stock-btn')) {
+                    UI.initStockForm(id);
+                }
+                if (btn.classList.contains('delete-btn')) {
+                    UI.showConfirmationModal(
+                        Translator.t('delete'),
+                        Translator.t('delete_product_confirm'),
+                        () => {
+                            let products = Product.getAll().filter(p => p.id !== id);
+                            Storage.setProducts(products);
+                            UI.showToast(Translator.t('product_deleted'), 'success');
+                            Router.handleRoute();
+                        }
+                    );
+                }
+            };
+        });
+    }
+
+    static initEmployeeActions() {
+        document.querySelectorAll('#employees-list .action-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                const id = e.currentTarget.dataset.id;
+                const employee = Employee.getById(id);
+                if (!employee) return;
 
                 if (btn.classList.contains('edit-btn')) {
-                    // Ouvrir le modal avec les données du produit
-                    const modal = document.getElementById('product-modal');
-                    if (modal) {
-                        document.getElementById('product-name').value = product.name;
-                        document.getElementById('product-price').value = product.price;
-                        document.getElementById('product-description').value = product.description;
-                        document.getElementById('product-stock').value = product.stock || 0;
-                        
-                        // Ajouter l'ID du produit en cours d'édition
-                        productForm.setAttribute('data-edit-id', productId);
-                        
-                        // Mettre à jour le titre du modal et le bouton
-                        modal.querySelector('.modal-header h2').textContent = 'Modifier Produit';
-                        modal.querySelector('.save-btn').textContent = 'Mettre à jour';
-                        
-                        modal.classList.add('active');
-                    }
-                } else if (btn.classList.contains('stock-btn')) {
-                    // Ouvrir le modal de gestion de stock
-                    const modal = document.getElementById('stock-modal');
-                    if (modal) {
-                        document.getElementById('stock-product-id').value = product.id;
-                        document.getElementById('stock-product-name').value = product.name;
-                        document.getElementById('stock-product-current').value = product.stock || 0;
-                        document.getElementById('stock-product-quantity').value = 0;
-                        
-                        modal.classList.add('active');
-                    }
+                    UI.initEmployeeForm(id);
+                } else if (btn.classList.contains('generate-payslip-btn')) {
+                    const monthNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+                    const d = new Date();
+                    const period = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+                    const html = employee.generatePayslipHTML(period);
+                    const win = window.open('', '_blank');
+                    win.document.write(html);
+                    win.document.close();
                 } else if (btn.classList.contains('delete-btn')) {
-                    if (confirm(Translator.t('delete_product_confirm'))) {
-                        const index = products.findIndex(p => p.id === productId);
-                        if (index !== -1) {
-                            products.splice(index, 1);
-                            Storage.setProducts(products);
-                            UI.updateProductsList();
-                        }
-                    }
-                }
-            });
-        });
-
-        // Soumission du formulaire (création ou modification)
-        if (productForm) {
-            // Supprimer les anciens event listeners
-            const newProductForm = productForm.cloneNode(true);
-            productForm.parentNode.replaceChild(newProductForm, productForm);
-            
-            newProductForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const editId = newProductForm.getAttribute('data-edit-id');
-                const productData = {
-                    name: document.getElementById('product-name').value,
-                    price: parseFloat(document.getElementById('product-price').value) || 0,
-                    description: document.getElementById('product-description').value,
-                    stock: parseInt(document.getElementById('product-stock').value) || 0
-                };
-
-                const products = Product.getAll();
-                if (editId) {
-                    // Mode édition
-                    const index = products.findIndex(p => p.id === editId);
-                    if (index !== -1) {
-                        // Conserver l'ID existant et mettre à jour les autres données
-                        products[index] = {
-                            id: editId,
-                            ...productData
-                        };
-                        Storage.setProducts(products);
-                    }
-                } else {
-                    // Mode création
-                    const product = new Product(
-                        productData.name,
-                        productData.price,
-                        productData.description,
-                        productData.stock
+                    UI.showConfirmationModal(
+                       Translator.t('delete'),
+                       Translator.t('delete_employee_confirm'),
+                       () => {
+                           let employees = Employee.getAll().filter(emp => emp.id !== id);
+                           Storage.setEmployees(employees);
+                           UI.showToast(Translator.t('employee_deleted'), 'success');
+                           Router.handleRoute();
+                       }
                     );
-                    Product.add(product);
                 }
-
-                this.updateProductsList();
-                document.getElementById('product-modal').classList.remove('active');
-                newProductForm.reset();
-                productForm.removeAttribute('data-edit-id');
-            });
-        }
-        
-        // Soumission du formulaire de gestion de stock
-        const stockForm = document.getElementById('stock-form');
-        if (stockForm) {
-            // Supprimer les anciens event listeners
-            const newStockForm = stockForm.cloneNode(true);
-            stockForm.parentNode.replaceChild(newStockForm, stockForm);
-            
-            newStockForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const productId = document.getElementById('stock-product-id').value;
-                const quantity = parseInt(document.getElementById('stock-product-quantity').value) || 0;
-                
-                if (productId && quantity !== 0) {
-                    Product.updateStock(productId, quantity);
-                    this.updateProductsList();
-                    document.getElementById('stock-modal').classList.remove('active');
-                }
-            });
-        }
+           };
+        });
     }
 
     static initSettingsForm() {
         const form = document.getElementById('settings-form');
         if (!form) return;
-
-        // Charger les paramètres existants
         const settings = Storage.getSettings();
         Object.keys(settings).forEach(key => {
             const input = document.getElementById(`company-${key}`);
             if (input) input.value = settings[key];
         });
-
-        // Sauvegarder les paramètres
-        form.addEventListener('submit', (e) => {
+        form.onsubmit = (e) => {
             e.preventDefault();
-            const settings = {
-                ...Storage.getSettings(),
+            const previousLanguage = Storage.getSettings().language || 'fr';
+            const newSettings = {
                 name: document.getElementById('company-name').value,
                 address: document.getElementById('company-address').value,
                 phone: document.getElementById('company-phone').value,
@@ -2066,858 +1700,300 @@ class UI {
                 currency: document.getElementById('company-currency').value,
                 rc: document.getElementById('company-rc').value,
                 nif: document.getElementById('company-nif').value,
+                adherent: document.getElementById('company-adherent').value,
                 language: document.getElementById('company-language').value
             };
-            
-            // Vérifier si la langue a changé
-            const previousLanguage = Storage.getSettings().language || 'fr';
-            const languageChanged = previousLanguage !== settings.language;
-            
-            Storage.setSettings(settings);
-            alert(Translator.t('settings_saved'));
-            
-            // Si la langue a changé, recharger la page pour appliquer les changements
-            if (languageChanged) {
-                alert(Translator.t('language_changed'));
-                window.location.reload();
+            Storage.setSettings(newSettings);
+            UI.showToast(Translator.t('settings_saved'), 'success');
+            if (previousLanguage !== newSettings.language) {
+                UI.showToast(Translator.t('language_changed'), 'info');
+                setTimeout(() => window.location.reload(), 2000);
             } else {
-                // Mettre à jour l'affichage des montants
-                Invoice.updateDashboardStats();
-                this.updateInvoicesList();
-                this.updateProductsList();
+                Router.handleRoute();
             }
+        };
+
+        document.getElementById('export-data-btn')?.addEventListener('click', DataService.exportToXLSX);
+    
+        const importInput = document.getElementById('import-data-input');
+        importInput?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                DataService.importFromXLSX(file);
+            }
+            e.target.value = null; // Réinitialiser pour permettre de ré-uploader le même fichier
         });
-    }
-
-    static initGlobalEventListeners() {
-        // Gestionnaire pour les boutons d'action globaux
-        document.addEventListener('click', (e) => {
-            const actionBtn = e.target.closest('.action-btn');
-            if (!actionBtn) return;
-
-            // Vérifier si nous sommes sur la page des factures
-            // Si oui, les gestionnaires spécifiques dans initInvoiceActions s'en occupent déjà
-            const invoicesList = document.getElementById('invoices-list');
-            if (invoicesList && invoicesList.contains(actionBtn)) {
-                return; // Éviter la duplication du traitement
-            }
-
-            const invoiceId = actionBtn.dataset.id;
-            if (!invoiceId) return;
-
-            // Utiliser la méthode getById améliorée pour récupérer une instance complète
-            const invoice = Invoice.getById(invoiceId);
-            if (!invoice) return;
-            
-            if (actionBtn.classList.contains('view-btn')) {
-                const html = invoice.generateHTML();
-                const win = window.open('', '_blank');
-                win.document.write(html);
-                win.document.close();
-                win.document.addEventListener('DOMContentLoaded', () => {
-                    win.print();
-                });
-            } else if (actionBtn.classList.contains('download-btn')) {
-                const html = invoice.generateHTML();
-                const element = document.createElement('div');
-                element.innerHTML = html;
-                document.body.appendChild(element);
-                
-                // Utiliser html2pdf pour la conversion
-                const opt = {
-                    margin: [10, 10, 10, 10], // Marges réduites [haut, droite, bas, gauche] en mm
-                    filename: `facture-${invoice.id}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { 
-                        scale: 2,
-                        letterRendering: true
-                    },
-                    jsPDF: { 
-                        unit: 'mm', 
-                        format: 'a4', 
-                        orientation: 'portrait',
-                        compress: true
-                    }
-                };
-                
-                // Charger dynamiquement html2pdf si nécessaire
-                if (typeof html2pdf === 'undefined') {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-                    script.onload = () => {
-                        html2pdf().set(opt).from(element).save().then(() => {
-                            document.body.removeChild(element);
-                        });
-                    };
-                    document.head.appendChild(script);
-                } else {
-                    html2pdf().set(opt).from(element).save().then(() => {
-                        document.body.removeChild(element);
-                    });
-                }
-            } else if (actionBtn.classList.contains('mark-paid-btn')) {
-                const invoices = Invoice.getAll();
-                const index = invoices.findIndex(inv => inv.id === invoiceId);
-                
-                if (index !== -1) {
-                    invoices[index].status = 'paid';
-                    Storage.setInvoices(invoices);
-                    this.updateInvoicesList();
-                    Invoice.updateDashboardStats();
-                }
-            } else if (actionBtn.classList.contains('delete-btn')) {
-                if (confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
-                    if (Invoice.delete(invoiceId)) {
-                        this.updateInvoicesList();
-                        Invoice.updateDashboardStats();
-                    }
-                }
-            }
-        });
-
-        // Gestionnaire pour la fermeture des modals
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal') || e.target.classList.contains('close-modal')) {
-                const modal = e.target.closest('.modal') || e.target.closest('.modal-content').parentElement;
-                if (modal) {
-                    modal.classList.remove('active');
-                }
-            }
-        });
-
-        // Gestionnaire de recherche
-        document.addEventListener('input', (e) => {
-            if (e.target.closest('.search-bar input')) {
-                const searchTerm = e.target.value.toLowerCase().trim();
-                const currentRoute = window.location.hash.substring(1) || 'dashboard';
-                UI.handleSearch(searchTerm, currentRoute);
-            }
-        });
-    }
-
-    static handleSearch(searchTerm, currentRoute) {
-        switch (currentRoute) {
-            case 'dashboard':
-            case 'invoices':
-                // Recherche dans les factures
-                const invoices = Invoice.getAll();
-                const filteredInvoices = invoices.filter(invoice => {
-                    const client = Client.getAll().find(c => c.id === invoice.clientId);
-                    return (
-                        invoice.id.toLowerCase().includes(searchTerm) ||
-                        (client && client.name.toLowerCase().includes(searchTerm)) ||
-                        Invoice.formatAmount(invoice.totalTTC).toLowerCase().includes(searchTerm)
-                    );
-                });
-                
-                const tbody = document.getElementById('invoices-list');
-                if (tbody) {
-                    tbody.innerHTML = '';
-                    filteredInvoices.forEach(invoice => {
-                        const client = Client.getAll().find(c => c.id === invoice.clientId);
-                        const row = document.createElement('tr');
-                        
-                        row.innerHTML = `
-                            <td>${invoice.id}</td>
-                            <td>${client ? client.name : 'Client inconnu'}</td>
-                            <td>${new Date(invoice.date).toLocaleDateString()}</td>
-                            <td>${Invoice.formatAmount(invoice.totalTTC)}</td>
-                            <td>
-                                <span class="status-badge ${invoice.status} clickable" data-invoice-id="${invoice.id}">
-                                    ${invoice.status === 'paid' ? 'Payée' : 'En attente'}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="action-btn edit-btn" data-id="${invoice.id}" title="${Translator.t('edit')}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn view-btn" data-id="${invoice.id}" title="Voir la facture">
-                                    <i class="fas fa-file-alt"></i>
-                                </button>
-                                <button class="action-btn download-btn" data-id="${invoice.id}" title="Télécharger la facture">
-                                    <i class="fas fa-cloud-download-alt"></i>
-                                </button>
-                                <button class="action-btn delete-btn" data-id="${invoice.id}" title="Supprimer la facture">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
-                        `;
-
-                        tbody.appendChild(row);
-                    });
-                    this.initInvoiceActions();
-                    this.initStatusClickHandler();
-                }
-                break;
-
-            case 'clients':
-                // Recherche dans les clients
-                const clients = Client.getAll();
-                const filteredClients = clients.filter(client => 
-                    client.name.toLowerCase().includes(searchTerm) ||
-                    client.email.toLowerCase().includes(searchTerm) ||
-                    client.phone.toLowerCase().includes(searchTerm) ||
-                    client.address.toLowerCase().includes(searchTerm)
-                );
-                
-                const clientsTbody = document.getElementById('clients-list');
-                if (clientsTbody) {
-                    clientsTbody.innerHTML = '';
-                    filteredClients.forEach(client => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${client.name}</td>
-                            <td>${client.email}</td>
-                            <td>${client.phone}</td>
-                            <td>${client.address}</td>
-                            <td>
-                                <button class="action-btn edit-btn" data-id="${client.id}" title="Modifier le client">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                                <button class="action-btn delete-btn" data-id="${client.id}" title="Supprimer le client">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
-                        `;
-                        clientsTbody.appendChild(row);
-                    });
-                    this.initClientActions();
-                }
-                break;
-
-            case 'products':
-                // Recherche dans les produits
-                const products = Product.getAll();
-                const filteredProducts = products.filter(product =>
-                    product.name.toLowerCase().includes(searchTerm) ||
-                    product.description.toLowerCase().includes(searchTerm) ||
-                    Invoice.formatAmount(product.price).toLowerCase().includes(searchTerm)
-                );
-                
-                const productsTbody = document.getElementById('products-list');
-                if (productsTbody) {
-                    productsTbody.innerHTML = '';
-                    filteredProducts.forEach(product => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${product.name}</td>
-                            <td>${Invoice.formatAmount(product.price)}</td>
-                            <td>${product.description}</td>
-                            <td>${product.stock || 0}</td>
-                            <td>
-                                <button class="action-btn edit-btn" data-id="${product.id}" title="Modifier le produit">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                                <button class="action-btn stock-btn" data-id="${product.id}" title="Gérer le stock">
-                                    <i class="fas fa-boxes"></i>
-                                </button>
-                                <button class="action-btn delete-btn" data-id="${product.id}" title="Supprimer le produit">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
-                        `;
-                        productsTbody.appendChild(row);
-                    });
-                    this.initProductActions();
-                }
-                break;
-        }
-    }
-
-    static openInvoiceForEdit(invoiceId) {
-        // Récupérer la facture à modifier
-        const invoice = Invoice.getById(invoiceId);
-        if (!invoice) return;
-        
-        // Ouvrir le modal
-        const modal = document.getElementById('invoice-modal');
-        if (!modal) return;
-        
-        // Mettre à jour le titre du modal
-        const modalTitle = modal.querySelector('.modal-header h2');
-        if (modalTitle) {
-            modalTitle.textContent = Translator.t('edit_invoice');
-        }
-
-        // Réinitialiser le formulaire et les composants de sélection avec recherche
-        this.initInvoiceForm();
-        
-        // Récupérer le formulaire
-        const form = document.getElementById('invoice-form');
-        if (!form) return;
-        
-        // Stocker l'ID de la facture en cours de modification
-        form.dataset.editId = invoiceId;
-        
-        // Sélectionner le client dans la liste déroulante avec recherche
-        const clientHiddenInput = document.getElementById('client-select-value');
-        const clientSearchInput = document.getElementById('client-search');
-        if (clientHiddenInput && clientSearchInput) {
-            clientHiddenInput.value = invoice.clientId;
-            const client = Client.getById(invoice.clientId);
-            if (client) {
-                clientSearchInput.value = client.name;
-            }
-        }
-        
-        // Vider la liste des articles
-        const itemsList = document.getElementById('items-list');
-        if (itemsList) {
-            itemsList.innerHTML = '';
-            
-            // Ajouter les articles de la facture
-            invoice.items.forEach(item => {
-                const itemRow = document.createElement('div');
-                itemRow.classList.add('item-row');
-                itemRow.innerHTML = `
-                    <div class="searchable-select-container">
-                        <div class="select-search-wrapper">
-                            <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
-                            <i class="fas fa-search search-icon"></i>
-                        </div>
-                        <div class="select-dropdown product-dropdown">
-                            <ul class="product-options"></ul>
-                        </div>
-                        <input type="hidden" class="product-select-value" required>
-                    </div>
-                    <input type="number" class="quantity" min="1" value="${item.quantity}" required>
-                    <button type="button" class="remove-item">&times;</button>
-                `;
-                itemsList.appendChild(itemRow);
-                
-                // Initialiser le select avec recherche
-                const searchInput = itemRow.querySelector('.product-search');
-                const dropdown = itemRow.querySelector('.product-dropdown');
-                const optionsList = itemRow.querySelector('.product-options');
-                const hiddenInput = itemRow.querySelector('.product-select-value');
-                
-                this.setupProductSearchableSelect(searchInput, dropdown, optionsList, hiddenInput);
-                
-                // Sélectionner le produit
-                const product = Product.getById(item.productId);
-                if (product) {
-                    hiddenInput.value = product.id;
-                    hiddenInput.dataset.price = product.price;
-                    searchInput.value = product.name;
-                }
-                
-                // Ajouter les écouteurs d'événements pour les nouveaux éléments
-                const quantityInput = itemRow.querySelector('.quantity');
-                
-                if (quantityInput) {
-                    quantityInput.addEventListener('input', () => this.updateTotal());
-                }
-                
-                if (hiddenInput) {
-                    hiddenInput.addEventListener('change', () => this.updateTotal());
-                }
-            });
-        }
-
-        // Mettre à jour le total
-        this.updateTotal();
-        
-        // Mettre à jour le bouton de soumission
-        const submitButton = form.querySelector('button[type="submit"]');
-        if (submitButton) {
-            submitButton.textContent = Translator.t('update');
-        }
-        
-        // Afficher le modal
-        modal.classList.add('active');
-    }
-
-    static handleInvoiceSubmit(form) {
-        const editId = form.dataset.editId;
-        const clientId = document.getElementById('client-select-value').value;
-        const items = [];
-
-        form.querySelectorAll('.item-row').forEach(row => {
-            const hiddenInput = row.querySelector('.product-select-value');
-            const product = Product.getById(hiddenInput.value);
-            const quantity = parseInt(row.querySelector('.quantity').value);
-
-            if (product && quantity) {
-                items.push({
-                    productId: product.id,
-                    name: product.name,
-                    price: product.price,
-                    quantity: quantity
-                });
-            }
-        });
-
-        if (clientId && items.length > 0) {
-            try {
-                if (editId) {
-                    // Mode édition - modifier une facture existante
-                    const existingInvoice = Invoice.getById(editId);
-                    
-                    if (existingInvoice) {
-                        // Mettre à jour les propriétés de la facture
-                        existingInvoice.clientId = clientId;
-                        existingInvoice.items = items;
-                        existingInvoice.totalHT = existingInvoice.calculateTotalHT();
-                        existingInvoice.tva = existingInvoice.calculateTVA();
-                        existingInvoice.totalTTC = existingInvoice.calculateTotalTTC();
-                        
-                        // Sauvegarder les modifications
-                        existingInvoice.save();
-                        
-                        // Mettre à jour l'interface utilisateur
-                        this.updateInvoicesList();
-                        Invoice.updateDashboardStats();
-                        
-                        // Afficher un message de succès
-                        alert(Translator.t('invoice_updated') || 'Facture mise à jour avec succès !');
-                        location.reload(); // Recharger la page pour actualiser l'interface
-                    }
-                } else {
-                    // Mode création - créer une nouvelle facture
-                    const invoice = new Invoice(clientId, items);
-                    Invoice.add(invoice);
-                    
-                    // Afficher un message de succès
-                    alert(Translator.t('invoice_created') || 'Facture créée avec succès !');
-                }
-                
-                // Fermer le modal
-                document.getElementById('invoice-modal').classList.remove('active');
-                
-                // Réinitialiser le formulaire
-                form.reset();
-                form.removeAttribute('data-edit-id');
-                
-                // Réinitialiser les articles
-                document.getElementById('items-list').innerHTML = `
-                    <div class="item-row">
-                        <div class="searchable-select-container">
-                            <div class="select-search-wrapper">
-                                <input type="text" class="select-search product-search" placeholder="Rechercher un produit...">
-                                <i class="fas fa-search search-icon"></i>
-                            </div>
-                            <div class="select-dropdown product-dropdown">
-                                <ul class="product-options"></ul>
-                            </div>
-                            <input type="hidden" class="product-select-value" required>
-                        </div>
-                        <input type="number" class="quantity" min="1" value="1" required>
-                        <button type="button" class="remove-item">&times;</button>
-                    </div>
-                `;
-                this.updateTotal();
-                
-                // Rediriger vers la liste des factures si nous ne sommes pas déjà dessus
-                if (!document.querySelector('.invoices-list')) {
-                    Router.navigateTo('invoices');
-                } else {
-                    // Mettre à jour la liste des factures si nous sommes déjà sur la page
-                    this.updateInvoicesList();
-                }
-            } catch (error) {
-                console.error('Erreur lors de la gestion de la facture:', error);
-                alert(Translator.t('invoice_error') || 'Une erreur est survenue lors de la gestion de la facture.');
-            }
-        } else {
-            alert(Translator.t('invoice_validation_error') || 'Veuillez sélectionner un client et ajouter au moins un article.');
-        }
     }
 }
 
 // Gestion du routage
 class Router {
     static init() {
-        this.handleRoute();
-        // Gestion des liens de navigation
+        window.addEventListener('hashchange', this.handleRoute.bind(this));
         document.querySelectorAll('.menu a').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                const route = link.getAttribute('href').substring(1); // Enlève le #
-                this.navigateTo(route);
+                window.location.hash = link.getAttribute('href');
             });
         });
-
-        // Gestion du bouton retour du navigateur
-        window.addEventListener('popstate', () => {
-            this.handleRoute();
-        });
-    }
-
-    static navigateTo(route) {
-        window.history.pushState({}, '', `#${route}`);
         this.handleRoute();
     }
 
     static handleRoute() {
-        const hash = window.location.hash || '#dashboard';
-        const route = hash.substring(1); // Enlève le #
+        const route = (window.location.hash || '#dashboard').substring(1);
+        document.querySelectorAll('.menu li').forEach(item => item.classList.remove('active'));
+        const activeLink = document.querySelector(`.menu a[href="#${route}"]`);
+        if(activeLink) activeLink.parentElement.classList.add('active');
 
-        // Mise à jour du menu actif
-        document.querySelectorAll('.menu li').forEach(item => {
-            item.classList.remove('active');
-        });
-        document.querySelector(`.menu a[href="#${route}"]`).parentElement.classList.add('active');
-
-        // Affichage de la vue correspondante
-        this.showView(route);
+        this.loadView(route);
     }
 
-    static showView(route) {
+    static loadView(route) {
         const mainContent = document.querySelector('.main-content');
+        mainContent.innerHTML = this.getView(route);
+        this.postRender(route);
+    }
+
+    static postRender(route) {
+        let items, rowGenerator, tbodyId, actionsInitializer;
         switch (route) {
             case 'dashboard':
-                mainContent.innerHTML = this.getDashboardView();
                 Invoice.updateDashboardStats();
-                UI.updateInvoicesList();
-                UI.initModals(); // Réinitialiser les modals
+                items = Invoice.getAll().slice(-5).reverse();
+                rowGenerator = this.invoiceRow;
+                tbodyId = 'invoices-list';
+                actionsInitializer = UI.initInvoiceActions;
                 break;
             case 'invoices':
-                mainContent.innerHTML = this.getInvoicesView();
-                UI.updateInvoicesList();
-                UI.initModals(); // Réinitialiser les modals
+                items = Invoice.getAll().reverse();
+                rowGenerator = this.invoiceRow;
+                tbodyId = 'invoices-list';
+                actionsInitializer = UI.initInvoiceActions;
                 break;
             case 'clients':
-                mainContent.innerHTML = this.getClientsView();
-                UI.updateClientsList();
-                UI.initModals(); // Réinitialiser les modals
+                items = Client.getAll();
+                rowGenerator = this.clientRow;
+                tbodyId = 'clients-list';
+                actionsInitializer = UI.initClientActions;
                 break;
             case 'products':
-                mainContent.innerHTML = this.getProductsView();
-                UI.updateProductsList();
-                UI.initModals(); // Réinitialiser les modals
+                items = Product.getAll();
+                rowGenerator = this.productRow;
+                tbodyId = 'products-list';
+                actionsInitializer = UI.initProductActions;
+                break;
+            case 'employees':
+                items = Employee.getAll();
+                rowGenerator = this.employeeRow;
+                tbodyId = 'employees-list';
+                actionsInitializer = UI.initEmployeeActions;
                 break;
             case 'settings':
-                mainContent.innerHTML = this.getSettingsView();
                 UI.initSettingsForm();
                 break;
         }
+
+        if(tbodyId) UI.updateList(tbodyId, items, rowGenerator, actionsInitializer);
+        
+        document.querySelector('.new-invoice-btn')?.addEventListener('click', () => UI.initInvoiceForm());
+        document.querySelector('.new-client-btn')?.addEventListener('click', () => UI.initClientForm());
+        document.querySelector('.new-product-btn')?.addEventListener('click', () => UI.initProductForm());
+        document.querySelector('.new-employee-btn')?.addEventListener('click', () => UI.initEmployeeForm());
+        
+        document.getElementById('invoice-form')?.addEventListener('submit', UI.handleInvoiceSubmit);
+        document.getElementById('client-form')?.addEventListener('submit', UI.handleClientSubmit);
+        document.getElementById('product-form')?.addEventListener('submit', UI.handleProductSubmit);
+        document.getElementById('stock-form')?.addEventListener('submit', UI.handleStockSubmit);
+        document.getElementById('employee-form')?.addEventListener('submit', UI.handleEmployeeSubmit);
+        
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                this.handleSearch(route, searchTerm);
+            });
+        }
+    }
+    
+    static handleSearch(route, searchTerm) {
+        let allItems, filteredItems, rowGenerator, tbodyId, actionsInitializer;
+        
+        if (route === 'dashboard' || route === 'invoices') {
+            allItems = Invoice.getAll().reverse();
+            filteredItems = allItems.filter(inv => {
+                const client = Client.getById(inv.clientId);
+                return inv.id.toLowerCase().includes(searchTerm) || 
+                       (client && client.name.toLowerCase().includes(searchTerm));
+            });
+            if (route === 'dashboard') {
+                 filteredItems = filteredItems.slice(0, 5);
+            }
+            rowGenerator = this.invoiceRow;
+            tbodyId = 'invoices-list';
+            actionsInitializer = UI.initInvoiceActions;
+        } else if (route === 'clients') {
+            allItems = Client.getAll();
+            filteredItems = allItems.filter(c => c.name.toLowerCase().includes(searchTerm) || c.email.toLowerCase().includes(searchTerm));
+            rowGenerator = this.clientRow;
+            tbodyId = 'clients-list';
+            actionsInitializer = UI.initClientActions;
+        } else if (route === 'products') {
+            allItems = Product.getAll();
+            filteredItems = allItems.filter(p => p.name.toLowerCase().includes(searchTerm) || (p.description && p.description.toLowerCase().includes(searchTerm)));
+            rowGenerator = this.productRow;
+            tbodyId = 'products-list';
+            actionsInitializer = UI.initProductActions;
+        } else if (route === 'employees') {
+            allItems = Employee.getAll();
+            filteredItems = allItems.filter(e => e.name.toLowerCase().includes(searchTerm) || e.position.toLowerCase().includes(searchTerm));
+            rowGenerator = this.employeeRow;
+            tbodyId = 'employees-list';
+            actionsInitializer = UI.initEmployeeActions;
+        }
+
+        if(filteredItems) {
+            UI.updateList(tbodyId, filteredItems, rowGenerator, actionsInitializer);
+        }
+    }
+    
+    static invoiceRow(invoice) {
+        const client = Client.getById(invoice.clientId);
+        return `
+            <td>${invoice.id}</td>
+            <td>${client ? client.name : Translator.t('unknown_client')}</td>
+            <td>${new Date(invoice.date).toLocaleDateString()}</td>
+            <td>${Invoice.formatAmount(invoice.totalTTC, invoice.currency)}</td>
+            <td><span class="status-badge ${invoice.status} clickable" data-invoice-id="${invoice.id}">${Translator.t(invoice.status)}</span></td>
+            <td>
+                <button class="action-btn edit-btn" data-id="${invoice.id}" title="${Translator.t('edit')}"><i class="fas fa-edit"></i></button>
+                <button class="action-btn view-btn" data-id="${invoice.id}" title="${Translator.t('view_invoice')}"><i class="fas fa-file-alt"></i></button>
+                <button class="action-btn download-btn" data-id="${invoice.id}" title="${Translator.t('download_invoice')}"><i class="fas fa-download"></i></button>
+                <button class="action-btn delete-btn" data-id="${invoice.id}" title="${Translator.t('delete_invoice')}"><i class="fas fa-trash-alt"></i></button>
+            </td>`;
     }
 
-    static getDashboardView() {
-        const rtl = Translator.getTextDirection() === 'rtl';
+    static clientRow(client) {
         return `
-            <header class="top-bar ${rtl ? 'rtl' : ''}">
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="${Translator.t('search')}">
-                </div>
-                <div class="user-menu">
-                    <button class="new-invoice-btn"><i class="fas fa-plus"></i> ${Translator.t('new_invoice')}</button>
-                    <div class="profile">
-                        <img src="https://via.placeholder.com/40" alt="Profile" class="profile-img">
-                        <span>John Doe</span>
-                    </div>
-                </div>
-            </header>
-
-            <div class="dashboard ${rtl ? 'rtl' : ''}">
-                <div class="stats-container">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-euro-sign"></i></div>
-                        <div class="stat-info">
-                            <h3>${Translator.t('revenue')}</h3>
-                            <p class="amount">0 €</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
-                        <div class="stat-info">
-                            <h3>${Translator.t('pending_invoices')}</h3>
-                            <p class="amount">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <div class="stat-info">
-                            <h3>${Translator.t('active_clients')}</h3>
-                            <p class="amount">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="recent-invoices">
-                    <h2>${Translator.t('recent_invoices')}</h2>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>${Translator.t('invoice_number')}</th>
-                                    <th>${Translator.t('client')}</th>
-                                    <th>${Translator.t('date')}</th>
-                                    <th>${Translator.t('amount')}</th>
-                                    <th>${Translator.t('status')}</th>
-                                    <th>${Translator.t('actions')}</th>
-                                </tr>
-                            </thead>
-                            <tbody id="invoices-list">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>`;
+            <td>${client.name}</td>
+            <td>${client.email}</td>
+            <td>${client.phone}</td>
+            <td>${client.address}</td>
+            <td>
+                <button class="action-btn edit-btn" data-id="${client.id}" title="${Translator.t('edit')}"><i class="fas fa-pen"></i></button>
+                <button class="action-btn delete-btn" data-id="${client.id}" title="${Translator.t('delete')}"><i class="fas fa-trash-alt"></i></button>
+            </td>`;
     }
 
-    static getInvoicesView() {
-        const rtl = Translator.getTextDirection() === 'rtl';
+    static productRow(product) {
         return `
-            <header class="top-bar ${rtl ? 'rtl' : ''}">
-                <h1>${Translator.t('invoices')}</h1>
-                <div class="user-menu">
-                    <button class="new-invoice-btn"><i class="fas fa-plus"></i> ${Translator.t('new_invoice')}</button>
+            <td>${product.name}</td>
+            <td>${Invoice.formatAmount(product.price)}</td>
+            <td>${product.description}</td>
+            <td>${product.stock || 0}</td>
+            <td>
+                <button class="action-btn edit-btn" data-id="${product.id}" title="${Translator.t('edit')}"><i class="fas fa-pen"></i></button>
+                <button class="action-btn stock-btn" data-id="${product.id}" title="${Translator.t('manage_stock')}"><i class="fas fa-boxes"></i></button>
+                <button class="action-btn delete-btn" data-id="${product.id}" title="${Translator.t('delete')}"><i class="fas fa-trash-alt"></i></button>
+            </td>`;
+    }
+
+    static employeeRow(employee) {
+        return `
+            <td>${employee.name}</td>
+            <td>${employee.position}</td>
+            <td>${new Date(employee.hireDate).toLocaleDateString()}</td>
+            <td>${Invoice.formatAmount(employee.salary)}</td>
+            <td>
+                <button class="action-btn edit-btn" data-id="${employee.id}" title="${Translator.t('edit')}"><i class="fas fa-pen"></i></button>
+                <button class="action-btn generate-payslip-btn" data-id="${employee.id}" title="${Translator.t('generate_payslip')}"><i class="fas fa-file-invoice-dollar"></i></button>
+                <button class="action-btn" data-id="${employee.id}" title="${Translator.t('generate_work_certificate')}"><i class="fas fa-file-signature"></i></button>
+                <button class="action-btn" data-id="${employee.id}" title="${Translator.t('generate_leave_certificate')}"><i class="fas fa-calendar-alt"></i></button>
+                <button class="action-btn delete-btn" data-id="${employee.id}" title="${Translator.t('delete')}"><i class="fas fa-trash-alt"></i></button>
+            </td>`;
+    }
+
+    static getView(route) {
+        const T = Translator.t.bind(Translator);
+        const rtl = Translator.getTextDirection() === 'rtl' ? 'rtl' : '';
+        const header = (title, buttonType, showSearch = false) => `
+            <header class="top-bar ${rtl}">
+                <h1>${T(title)}</h1>
+                <div class="top-bar-controls">
+                    ${showSearch ? `<div class="search-bar"><i class="fas fa-search"></i><input type="text" id="search-input" placeholder="${T('search')}"></div>` : ''}
+                    ${buttonType ? `<button class="new-${buttonType}-btn"><i class="fas fa-plus"></i> ${T('new_' + buttonType)}</button>` : ''}
                 </div>
-            </header>
-            <div class="invoices-list ${rtl ? 'rtl' : ''}">
+            </header>`;
+        
+        const table = (id, headers) => `
+            <div class="table-wrapper">
                 <div class="table-container">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>${Translator.t('invoice_number')}</th>
-                                <th>${Translator.t('client')}</th>
-                                <th>${Translator.t('date')}</th>
-                                <th>${Translator.t('amount')}</th>
-                                <th>${Translator.t('status')}</th>
-                                <th>${Translator.t('actions')}</th>
-                            </tr>
-                        </thead>
-                        <tbody id="invoices-list">
-                        </tbody>
+                        <thead><tr>${headers.map(h => `<th>${T(h)}</th>`).join('')}</tr></thead>
+                        <tbody id="${id}-list"></tbody>
                     </table>
                 </div>
             </div>`;
-    }
-
-    static getClientsView() {
-        const rtl = Translator.getTextDirection() === 'rtl';
-        return `
-            <header class="top-bar ${rtl ? 'rtl' : ''}">
-                <h1>${Translator.t('clients')}</h1>
-                <div class="user-menu">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="${Translator.t('search')}">
+        
+        switch (route) {
+            case 'dashboard': return `
+                <header class="top-bar ${rtl}">
+                    <h1>${T('dashboard')}</h1>
+                    <div class="top-bar-controls">
+                        <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="search-input" placeholder="${T('search')}"></div>
+                        <button class="new-invoice-btn"><i class="fas fa-plus"></i> ${T('new_invoice')}</button>
                     </div>
-                    <button class="new-client-btn"><i class="fas fa-plus"></i> ${Translator.t('new_client')}</button>
-                </div>
-            </header>
-            <div class="clients-list ${rtl ? 'rtl' : ''}">
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>${Translator.t('name')}</th>
-                                <th>${Translator.t('email')}</th>
-                                <th>${Translator.t('phone')}</th>
-                                <th>${Translator.t('address')}</th>
-                                <th>${Translator.t('actions')}</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clients-list">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Modal pour nouveau client -->
-            <div class="modal" id="client-modal">
-                <div class="modal-content ${rtl ? 'rtl' : ''}">
-                    <div class="modal-header">
-                        <h2>${Translator.t('new_client')}</h2>
-                        <button class="close-modal">&times;</button>
+                </header>
+                <div class="dashboard ${rtl}">
+                    <div class="stats-container">
+                        ${['revenue', 'pending_invoices', 'active_clients'].map(stat => `
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <h3>${T(stat)}</h3>
+                                <p class="amount">0</p>
+                            </div>
+                        </div>`).join('')}
                     </div>
-                    <div class="modal-body">
-                        <form id="client-form">
-                            <div class="form-group">
-                                <label>${Translator.t('name')}</label>
-                                <input type="text" id="client-name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>${Translator.t('email')}</label>
-                                <input type="email" id="client-email">
-                            </div>
-                            <div class="form-group">
-                                <label>${Translator.t('phone')}</label>
-                                <input type="tel" id="client-phone">
-                            </div>
-                            <div class="form-group">
-                                <label>${Translator.t('address')}</label>
-                                <textarea id="client-address"></textarea>
-                            </div>
-                            <button type="submit" class="save-btn">${Translator.t('save')}</button>
-                        </form>
+                    <div class="recent-invoices">
+                        <h2>${T('recent_invoices')}</h2>
+                        ${table('invoices', ['invoice_number', 'client', 'date', 'amount', 'status', 'actions'])}
                     </div>
-                </div>
-            </div>`;
-    }
-
-    static getProductsView() {
-        const rtl = Translator.getTextDirection() === 'rtl';
-        return `
-            <header class="top-bar ${rtl ? 'rtl' : ''}">
-                <h1>${Translator.t('products')}</h1>
-                <div class="user-menu">
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="${Translator.t('search')}">
-                    </div>
-                    <button class="new-product-btn"><i class="fas fa-plus"></i> ${Translator.t('new_product')}</button>
-                </div>
-            </header>
-            <div class="products-list ${rtl ? 'rtl' : ''}">
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>${Translator.t('name')}</th>
-                                <th>${Translator.t('price')}</th>
-                                <th>${Translator.t('description')}</th>
-                                <th>${Translator.t('stock')}</th>
-                                <th>${Translator.t('actions')}</th>
-                            </tr>
-                        </thead>
-                        <tbody id="products-list">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Modal pour nouveau produit -->
-            <div class="modal" id="product-modal">
-                <div class="modal-content ${rtl ? 'rtl' : ''}">
-                    <div class="modal-header">
-                        <h2>${Translator.t('new_product')}</h2>
-                        <button class="close-modal">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="product-form">
-                            <div class="form-group">
-                                <label>${Translator.t('name')}</label>
-                                <input type="text" id="product-name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>${Translator.t('price')}</label>
-                                <input type="number" id="product-price" step="0.01" required>
-                            </div>
-                            <div class="form-group">
-                                <label>${Translator.t('description')}</label>
-                                <textarea id="product-description"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>${Translator.t('stock')}</label>
-                                <input type="number" id="product-stock" min="0" value="0" required>
-                            </div>
-                            <button type="submit" class="save-btn">${Translator.t('save')}</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Modal pour la gestion du stock -->
-            <div class="modal" id="stock-modal">
-                <div class="modal-content ${rtl ? 'rtl' : ''}">
-                    <div class="modal-header">
-                        <h2>${Translator.t('manage_stock')}</h2>
-                        <button class="close-modal">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="stock-form">
-                            <input type="hidden" id="stock-product-id">
-                            <div class="form-group">
-                                <label>${Translator.t('product_name')}</label>
-                                <input type="text" id="stock-product-name" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>${Translator.t('current_stock')}</label>
-                                <input type="text" id="stock-product-current" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label>${Translator.t('quantity')}</label>
-                                <input type="number" id="stock-product-quantity" required>
-                                <small class="form-help">${Translator.t('stock_quantity_help')}</small>
-                            </div>
-                            <button type="submit" class="save-btn">${Translator.t('update_stock')}</button>
-                        </form>
-                    </div>
-                </div>
-            </div>`;
-    }
-
-    static getSettingsView() {
-        const rtl = Translator.getTextDirection() === 'rtl';
-        return `
-            <header class="top-bar ${rtl ? 'rtl' : ''}">
-                <h1>${Translator.t('company_settings')}</h1>
-            </header>
-            <div class="settings-container ${rtl ? 'rtl' : ''}">
-                <form id="settings-form" class="settings-form">
-                    <div class="settings-section">
-                        <h2><i class="fas fa-building"></i> ${Translator.t('main_info')}</h2>
+                </div>`;
+            case 'invoices': return `${header('invoices', 'invoice', true)}${table('invoices', ['invoice_number', 'client', 'date', 'amount', 'status', 'actions'])}`;
+            case 'clients': return `${header('clients', 'client', true)}${table('clients', ['name', 'email', 'phone', 'address', 'actions'])}`;
+            case 'products': return `${header('products', 'product', true)}${table('products', ['name', 'price', 'description', 'stock', 'actions'])}`;
+            case 'employees': return `${header('employees', 'employee', true)}${table('employees', ['name', 'position', 'hire_date', 'salary', 'actions'])}`;
+            case 'settings': return `
+                ${header('settings')}
+                <div class="settings-container table-wrapper ${rtl}">
+                    <form id="settings-form" class="settings-form">
+                        <h2>${T('main_info')}</h2>
+                        <div class="form-group"><label for="company-name">${T('company_name')}</label><input type="text" id="company-name"></div>
+                        <div class="form-group"><label for="company-phone">${T('phone')}</label><input type="tel" id="company-phone"></div>
+                        <div class="form-group"><label for="company-email">${T('email')}</label><input type="email" id="company-email"></div>
+                        <div class="form-group"><label for="company-address">${T('address')}</label><textarea id="company-address"></textarea></div>
+                        <h2>${T('additional_info')}</h2>
+                        <div class="form-group"><label for="company-rc">${T('rc_number')}</label><input type="text" id="company-rc"></div>
+                        <div class="form-group"><label for="company-nif">${T('nif')}</label><input type="text" id="company-nif"></div>
+                        <div class="form-group"><label for="company-adherent">${T('adherent_number')}</label><input type="text" id="company-adherent"></div>
+                        <h2>${T('billing_settings')}</h2>
+                        <div class="form-group"><label for="company-currency">${T('currency')}</label><select id="company-currency"><option value="DZD">DZD</option><option value="EUR">EUR</option></select></div>
+                        <div class="form-group"><label for="company-language">${T('language')}</label><select id="company-language"><option value="fr">Français</option><option value="ar">العربية</option></select></div>
+                        <button type="submit" class="save-btn">${T('save_settings')}</button>
+                    </form>
+                    <div class="settings-form data-management-section">
+                        <h2>${T('data_management')}</h2>
                         <div class="form-group">
-                            <label for="company-name">${Translator.t('company_name')} *</label>
-                            <input type="text" id="company-name" required placeholder="${Translator.t('company_name')}">
-                            <small class="form-help">${Translator.t('company_name')}</small>
+                            <button type="button" id="export-data-btn" class="save-btn" style="background-color: #64748b;">${T('export_data')}</button>
                         </div>
                         <div class="form-group">
-                            <label for="company-phone">${Translator.t('phone')} *</label>
-                            <input type="tel" id="company-phone" required placeholder="Ex: 0123456789">
-                            <small class="form-help">${Translator.t('phone')}</small>
+                            <label for="import-data-input" class="import-btn-label">${T('import_data')}</label>
+                            <input type="file" id="import-data-input" accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display: none;">
+                            <p class="form-help-text">${T('import_data_help')}</p>
                         </div>
                     </div>
-
-                    <div class="settings-section">
-                        <h2><i class="fas fa-info-circle"></i> ${Translator.t('additional_info')}</h2>
-                        <div class="form-group">
-                            <label for="company-rc">${Translator.t('rc_number')}</label>
-                            <input type="text" id="company-rc" placeholder="${Translator.t('rc_number')}">
-                            <small class="form-help">${Translator.t('rc_number')}</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="company-nif">${Translator.t('nif')}</label>
-                            <input type="text" id="company-nif" placeholder="${Translator.t('nif')}">
-                            <small class="form-help">${Translator.t('nif')}</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="company-email">${Translator.t('email')}</label>
-                            <input type="email" id="company-email" placeholder="contact@entreprise.com">
-                            <small class="form-help">${Translator.t('email')}</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="company-address">${Translator.t('address')}</label>
-                            <textarea id="company-address" placeholder="${Translator.t('address')}" rows="3"></textarea>
-                            <small class="form-help">${Translator.t('address')}</small>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <h2><i class="fas fa-money-bill"></i> ${Translator.t('billing_settings')}</h2>
-                        <div class="form-group">
-                            <label for="company-currency">${Translator.t('currency')} *</label>
-                            <select id="company-currency" required>
-                                <option value="DZD">Dinar Algérien (DZD)</option>
-                                <option value="EUR">Euro (EUR)</option>
-                                <option value="USD">Dollar US (USD)</option>
-                                <option value="GBP">Livre Sterling (GBP)</option>
-                                <option value="MAD">Dirham Marocain (MAD)</option>
-                                <option value="TND">Dinar Tunisien (TND)</option>
-                            </select>
-                            <small class="form-help">${Translator.t('currency')}</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="company-language">${Translator.t('language')} *</label>
-                            <select id="company-language" required>
-                                <option value="fr">Français</option>
-                                <option value="ar">العربية (Arabe)</option>
-                            </select>
-                            <small class="form-help">${Translator.t('language')}</small>
-                        </div>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="save-btn">
-                            <i class="fas fa-save"></i> ${Translator.t('save_settings')}
-                        </button>
-                    </div>
-                </form>
-            </div>`;
+                </div>`;
+            default: return `<h1>Page non trouvée</h1>`;
+        }
     }
 }
 
@@ -2925,12 +2001,26 @@ class Router {
 document.addEventListener('DOMContentLoaded', () => {
     // Ajout de données de test si nécessaire
     if (Client.getAll().length === 0) {
-        Client.add(new Client('Client Test', 'test@example.com', '123 Rue Test', '0123456789'));
+        const clients = [
+            new Client('Client Test', 'test@example.com', '123 Rue Test', '0123456789'),
+            new Client('Société Alpha', 'contact@alpha.com', '45 Avenue Principale', '0987654321')
+        ];
+        Storage.setClients(clients);
     }
     if (Product.getAll().length === 0) {
-        Product.add(new Product('Produit Test', 99.99, 'Description du produit test'));
+        const products = [
+            new Product('Produit Test A', 99.99, 'Description du produit test A', 50),
+            new Product('Service de Conseil', 250, 'Heure de consultation', 1000),
+            new Product('Matériel B', 12.50, '', 200)
+        ];
+        Storage.setProducts(products);
     }
-
-    // Initialisation de l'interface
+    if (Employee.getAll().length === 0) {
+        const employees = [
+            new Employee('John Doe', 'Développeur', '2023-01-15', 50000, '1234567890'),
+            new Employee('Jane Smith', 'Designer', '2022-05-20', 45000, '0987654321')
+        ];
+        Storage.setEmployees(employees);
+    }
     UI.init();
-}); 
+});
