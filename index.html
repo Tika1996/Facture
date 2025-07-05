@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FacturePro - Application de Facturation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-invoice, #printable-invoice * {
+                visibility: visible;
+            }
+            #printable-invoice {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-file-invoice"></i>
+                <h1>FacturePro</h1>
+            </div>
+            <nav class="menu">
+                <ul>
+                    <li class="active"><a href="#dashboard"><i class="fas fa-home"></i> Tableau de bord</a></li>
+                    <li><a href="#invoices"><i class="fas fa-file-invoice"></i> Factures</a></li>
+                    <li><a href="#clients"><i class="fas fa-users"></i> Clients</a></li>
+                    <li><a href="#products"><i class="fas fa-box"></i> Produits</a></li>
+                    <li><a href="#employees"><i class="fas fa-user-tie"></i> Employés</a></li>
+                    <li><a href="#settings"><i class="fas fa-cog"></i> Paramètres</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Le contenu sera injecté ici par le routeur -->
+        </main>
+    </div>
+
+    <!-- Modal pour nouvelle/modifier facture -->
+    <div class="modal" id="invoice-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nouvelle Facture</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="invoice-form" data-edit-id="">
+                    <div class="form-group">
+                        <label>Client</label>
+                        <div class="searchable-select-container" id="client-select-container">
+                            <div class="select-search-wrapper">
+                                <input type="text" class="select-search" id="client-search" placeholder="Rechercher un client...">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <div class="select-dropdown" id="client-dropdown">
+                                <ul id="client-options"></ul>
+                            </div>
+                            <input type="hidden" id="client-select-value" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="invoice-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Articles</label>
+                        <div id="items-list">
+                            <!-- Les lignes d'articles seront ajoutées ici -->
+                        </div>
+                        <button type="button" id="add-item" class="add-item-btn">
+                            <i class="fas fa-plus"></i> Ajouter un article
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label>Total</label>
+                        <div id="invoice-total">0.00 DZD</div>
+                    </div>
+                    <button type="submit" class="save-btn">Créer la facture</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal pour nouveau/modifier client -->
+    <div class="modal" id="client-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="client-modal-title">Nouveau Client</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="client-form">
+                    <input type="hidden" id="client-id">
+                    <div class="form-group">
+                        <label for="client-name">Nom</label>
+                        <input type="text" id="client-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-email">Email</label>
+                        <input type="email" id="client-email">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-phone">Téléphone</label>
+                        <input type="tel" id="client-phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="client-address">Adresse</label>
+                        <textarea id="client-address"></textarea>
+                    </div>
+                    <button type="submit" class="save-btn">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour nouveau/modifier produit -->
+    <div class="modal" id="product-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="product-modal-title">Nouveau Produit</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="product-form">
+                    <input type="hidden" id="product-id">
+                    <div class="form-group">
+                        <label for="product-name">Nom du produit</label>
+                        <input type="text" id="product-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-price">Prix</label>
+                        <input type="number" id="product-price" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-description">Description</label>
+                        <textarea id="product-description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-stock">Stock Initial</label>
+                        <input type="number" id="product-stock" min="0" value="0">
+                    </div>
+                    <button type="submit" class="save-btn">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour nouvel/modifier employé -->
+    <div class="modal" id="employee-modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2 id="employee-modal-title">Nouvel Employé</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="employee-form">
+                    <input type="hidden" id="employee-id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="employee-matricule">Matricule</label>
+                            <input type="text" id="employee-matricule" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="employee-name">Nom et Prénom</label>
+                            <input type="text" id="employee-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="employee-position">Poste</label>
+                            <input type="text" id="employee-position">
+                        </div>
+                         <div class="form-group">
+                            <label for="employee-salary">Salaire de base</label>
+                            <input type="number" id="employee-salary" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="employee-hire-date">Date d'embauche</label>
+                            <input type="date" id="employee-hire-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="employee-birth-date">Date de naissance</label>
+                            <input type="date" id="employee-birth-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="employee-birth-place">Lieu de naissance</label>
+                            <input type="text" id="employee-birth-place">
+                        </div>
+                        <div class="form-group">
+                            <label for="employee-nss">N° Sécurité Sociale</label>
+                            <input type="text" id="employee-nss">
+                        </div>
+                        <div class="form-group">
+                            <label for="employee-family-sit">Situation Familiale</label>
+                            <select id="employee-family-sit">
+                                <option value="C">Célibataire</option>
+                                <option value="M">Marié(e)</option>
+                                <option value="D">Divorcé(e)</option>
+                                <option value="V">Veuf(ve)</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-group-full">
+                            <label for="employee-address">Adresse</label>
+                            <textarea id="employee-address"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="save-btn">Enregistrer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmation -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content small-modal">
+            <div class="modal-header">
+                <h2 id="confirm-modal-title">Confirmation</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-modal-text">Êtes-vous sûr ?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-modal-cancel" class="btn btn-secondary">Annuler</button>
+                <button id="confirm-modal-confirm" class="btn btn-danger">Confirmer</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal pour Gérer le Stock -->
+    <div class="modal" id="stock-modal">
+        <div class="modal-content small-modal">
+            <div class="modal-header">
+                <h2 id="stock-modal-title">Gérer le stock</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="stock-form">
+                    <input type="hidden" id="stock-product-id">
+                    <h3 id="stock-product-name"></h3>
+                    <p id="stock-current-quantity"></p>
+                    <div class="form-group">
+                        <label for="stock-quantity-change">Quantité à ajouter/retirer</label>
+                        <input type="number" id="stock-quantity-change" required>
+                        <p class="form-help-text">Entrez une valeur positive pour augmenter le stock ou négative pour le diminuer.</p>
+                    </div>
+                    <button type="submit" class="save-btn">Mettre à jour le stock</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour choisir la période de la fiche de paie -->
+    <div class="modal" id="payslip-period-modal">
+        <div class="modal-content small-modal">
+            <div class="modal-header">
+                <h2 id="payslip-period-modal-title">Choisir la période</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="payslip-period-form">
+                    <input type="hidden" id="payslip-employee-id">
+                    <div class="form-group">
+                        <label for="payslip-month">Mois</label>
+                        <select id="payslip-month" required>
+                            <option value="0">Janvier</option>
+                            <option value="1">Février</option>
+                            <option value="2">Mars</option>
+                            <option value="3">Avril</option>
+                            <option value="4">Mai</option>
+                            <option value="5">Juin</option>
+                            <option value="6">Juillet</option>
+                            <option value="7">Août</option>
+                            <option value="8">Septembre</option>
+                            <option value="9">Octobre</option>
+                            <option value="10">Novembre</option>
+                            <option value="11">Décembre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="payslip-year">Année</label>
+                        <input type="number" id="payslip-year" required>
+                    </div>
+                    <button type="submit" class="save-btn">Générer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal pour Titre de Congé -->
+    <div class="modal" id="leave-period-modal">
+        <div class="modal-content small-modal">
+            <div class="modal-header">
+                <h2 id="leave-period-modal-title">Détails du congé</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="leave-period-form">
+                    <input type="hidden" id="leave-employee-id">
+                    <div class="form-group">
+                        <label for="leave-start-date">Date de début</label>
+                        <input type="date" id="leave-start-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="leave-duration">Durée (en jours)</label>
+                        <input type="number" id="leave-duration" min="1" required>
+                    </div>
+                    <button type="submit" class="save-btn">Générer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour choisir la période de la décharge -->
+    <div class="modal" id="discharge-period-modal">
+        <div class="modal-content small-modal">
+            <div class="modal-header">
+                <h2 id="discharge-period-modal-title">Choisir la période</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="discharge-period-form">
+                    <input type="hidden" id="discharge-employee-id">
+                    <div class="form-group">
+                        <label for="discharge-month">Mois</label>
+                        <select id="discharge-month" required>
+                            <option value="0">Janvier</option>
+                            <option value="1">Février</option>
+                            <option value="2">Mars</option>
+                            <option value="3">Avril</option>
+                            <option value="4">Mai</option>
+                            <option value="5">Juin</option>
+                            <option value="6">Juillet</option>
+                            <option value="7">Août</option>
+                            <option value="8">Septembre</option>
+                            <option value="9">Octobre</option>
+                            <option value="10">Novembre</option>
+                            <option value="11">Décembre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="discharge-year">Année</label>
+                        <input type="number" id="discharge-year" required>
+                    </div>
+                    <button type="submit" class="save-btn">Générer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Conteneur pour les notifications (toasts) -->
+    <div id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
