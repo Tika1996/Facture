@@ -376,7 +376,7 @@ class NumberToLetter {
 
 // Gestion des employés
 class Employee {
-    constructor(id, name, position, hireDate, salary, nss = '', familySit = 'C', birthDate = '', birthPlace = '', address = '') {
+    constructor(id, name, position, hireDate, salary, nss = '', familySit = 'C', birthDate = '', birthPlace = '', address = '', primeQualification = 0, primeResponsabilite = 0, indemnitePanier = 0, indemniteTransport = 0) {
         this.id = id;
         this.name = name;
         this.position = position;
@@ -387,6 +387,10 @@ class Employee {
         this.birthDate = birthDate;
         this.birthPlace = birthPlace;
         this.address = address;
+        this.primeQualification = primeQualification || 0;
+        this.primeResponsabilite = primeResponsabilite || 0;
+        this.indemnitePanier = indemnitePanier || 0;
+        this.indemniteTransport = indemniteTransport || 0;
     }
 
     static generateEmployeeId() {
@@ -415,7 +419,11 @@ class Employee {
             employeeData.familySit,
             employeeData.birthDate,
             employeeData.birthPlace,
-            employeeData.address
+            employeeData.address,
+            employeeData.primeQualification,
+            employeeData.primeResponsabilite,
+            employeeData.indemnitePanier,
+            employeeData.indemniteTransport
         );
         return employee;
     }
@@ -1280,11 +1288,11 @@ class Payslip {
         // Point 2: Utiliser le salaire de l'employé comme salaire de base
         const base_salary = parseFloat(this.employee.salary) || 0;
 
-        // Gains (Exemples basés sur l'image)
-        const prime_qualification = 6500.00; // Exemple
-        const prime_responsabilite = 7000.00; // Exemple
-        const indemnite_panier = 12000.00; // Exemple
-        const indemnite_transport = 9900.00; // Exemple
+        // Gains basés sur les données de l'employé
+        const prime_qualification = parseFloat(this.employee.primeQualification) || 0;
+        const prime_responsabilite = parseFloat(this.employee.primeResponsabilite) || 0;
+        const indemnite_panier = parseFloat(this.employee.indemnitePanier) || 0;
+        const indemnite_transport = parseFloat(this.employee.indemniteTransport) || 0;
 
         this.total_gain = base_salary + prime_qualification + prime_responsabilite + indemnite_panier + indemnite_transport;
 
@@ -1305,15 +1313,29 @@ class Payslip {
         this.net_to_pay = this.total_gain - this.total_deductions;
 
         // Point 4: Construction des lignes dans l'ordre demandé
-        this.lines = [
-            { code: 'R030', label: 'SALAIRE DE BASE', base: null, rate: null, gain: base_salary, deduction: null },
-            { code: 'R330', label: 'PRIME DE QUALIFICATION', base: null, rate: null, gain: prime_qualification, deduction: null },
-            { code: 'R340', label: 'PRIME DE RESPONSABILITE', base: null, rate: null, gain: prime_responsabilite, deduction: null },
-            { code: 'R510', label: 'RETENUE SECU. SLE.', base: base_cotisable, rate: taux_ss, gain: null, deduction: this.retenue_ss },
-            { code: 'R530', label: 'INDEMNITE DE PANIER', base: null, rate: null, gain: indemnite_panier, deduction: null },
-            { code: 'R540', label: 'INDEMNITE DE TRANSPORT', base: null, rate: null, gain: indemnite_transport, deduction: null },
-            { code: 'R660', label: 'RETENUE IRG', base: base_imposable, rate: 1.0, gain: null, deduction: this.retenue_irg },
+        const lines = [
+            { code: 'R030', label: 'SALAIRE DE BASE', base: null, rate: null, gain: base_salary, deduction: null }
         ];
+
+        if (prime_qualification > 0) {
+            lines.push({ code: 'R330', label: 'PRIME DE QUALIFICATION', base: null, rate: null, gain: prime_qualification, deduction: null });
+        }
+        if (prime_responsabilite > 0) {
+            lines.push({ code: 'R340', label: 'PRIME DE RESPONSABILITE', base: null, rate: null, gain: prime_responsabilite, deduction: null });
+        }
+
+        lines.push({ code: 'R510', label: 'RETENUE SECU. SLE.', base: base_cotisable, rate: taux_ss, gain: null, deduction: this.retenue_ss });
+
+        if (indemnite_panier > 0) {
+            lines.push({ code: 'R530', label: 'INDEMNITE DE PANIER', base: null, rate: null, gain: indemnite_panier, deduction: null });
+        }
+        if (indemnite_transport > 0) {
+            lines.push({ code: 'R540', label: 'INDEMNITE DE TRANSPORT', base: null, rate: null, gain: indemnite_transport, deduction: null });
+        }
+
+        lines.push({ code: 'R660', label: 'RETENUE IRG', base: base_imposable, rate: 1.0, gain: null, deduction: this.retenue_irg });
+
+        this.lines = lines;
     }
 }
 
@@ -1878,6 +1900,10 @@ class UI {
                 form.querySelector('#employee-birth-date').value = employee.birthDate;
                 form.querySelector('#employee-birth-place').value = employee.birthPlace;
                 form.querySelector('#employee-address').value = employee.address;
+                form.querySelector('#employee-prime-qualification').value = employee.primeQualification || 0;
+                form.querySelector('#employee-prime-responsabilite').value = employee.primeResponsabilite || 0;
+                form.querySelector('#employee-indemnite-panier').value = employee.indemnitePanier || 0;
+                form.querySelector('#employee-indemnite-transport').value = employee.indemniteTransport || 0;
             }
         } else {
             modalTitle.textContent = Translator.t('new_employee');
@@ -1901,6 +1927,10 @@ class UI {
         const birthDate = form.querySelector('#employee-birth-date').value;
         const birthPlace = form.querySelector('#employee-birth-place').value;
         const address = form.querySelector('#employee-address').value;
+        const primeQualification = parseFloat(form.querySelector('#employee-prime-qualification').value) || 0;
+        const primeResponsabilite = parseFloat(form.querySelector('#employee-prime-responsabilite').value) || 0;
+        const indemnitePanier = parseFloat(form.querySelector('#employee-indemnite-panier').value) || 0;
+        const indemniteTransport = parseFloat(form.querySelector('#employee-indemnite-transport').value) || 0;
 
         if (!name || !matricule) {
             UI.showToast('Le nom et le matricule sont obligatoires.', 'error');
@@ -1925,6 +1955,10 @@ class UI {
                 employees[index].birthDate = birthDate;
                 employees[index].birthPlace = birthPlace;
                 employees[index].address = address;
+                employees[index].primeQualification = primeQualification;
+                employees[index].primeResponsabilite = primeResponsabilite;
+                employees[index].indemnitePanier = indemnitePanier;
+                employees[index].indemniteTransport = indemniteTransport;
                 
                 Storage.setEmployees(employees);
                 UI.showToast(Translator.t('employee_updated'), 'success');
@@ -1934,7 +1968,7 @@ class UI {
                 UI.showToast('Ce matricule est déjà utilisé.', 'error');
                 return;
             }
-            const newEmployee = new Employee(matricule, name, position, hireDate, salary, nss, familySit, birthDate, birthPlace, address);
+            const newEmployee = new Employee(matricule, name, position, hireDate, salary, nss, familySit, birthDate, birthPlace, address, primeQualification, primeResponsabilite, indemnitePanier, indemniteTransport);
             employees.push(newEmployee);
             Storage.setEmployees(employees);
             UI.showToast(Translator.t('employee_added'), 'success');
@@ -2541,5 +2575,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     UI.init();
 });
-
-    
